@@ -35,7 +35,7 @@ public class SetOrderFileSystem {
             StorageLocation.ordersPath,
             StorageLocation.orderedPath,
             StorageLocation.progressingPath,
-            StorageLocation.collectedPath
+            StorageLocation.collectedPath,
     };
 
     public static void main(String[] args) throws IOException {
