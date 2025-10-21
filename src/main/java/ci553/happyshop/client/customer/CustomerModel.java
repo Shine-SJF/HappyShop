@@ -7,6 +7,8 @@ import ci553.happyshop.orderManagement.OrderHub;
 import ci553.happyshop.utility.StorageLocation;
 import ci553.happyshop.utility.ProductListFormatter;
 
+
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -65,13 +67,18 @@ public class CustomerModel {
     void addToTrolley(){
         if(theProduct!= null){
 
+
+
             // trolley.add(theProduct) — Product is appended to the end of the trolley.
             // To keep the trolley organized, add code here or call a method that:
             //TODO
             // 1. Merges items with the same product ID (combining their quantities).
             // 2. Sorts the products in the trolley by product ID.
-            trolley.add(theProduct);
+//            trolley.add(theProduct);
+            makeOrganizedTrolley();
             displayTaTrolley = ProductListFormatter.buildString(trolley); //build a String for trolley so that we can show it
+
+
         }
         else{
             displayLaSearchResult = "Please search for an available product before adding it to the trolley";
@@ -81,6 +88,19 @@ public class CustomerModel {
         updateView();
     }
 
+
+    void makeOrganizedTrolley(){
+        for(Product p :trolley){
+            if(p.getProductId().equals(theProduct.getProductId())){
+                p.setOrderedQuantity(p.getOrderedQuantity()+ theProduct.getOrderedQuantity());
+                return;
+            }
+        }
+
+        Product pNew = new Product(theProduct.getProductId(), theProduct.getProductDescription(), theProduct.getProductImageName() ,theProduct.getUnitPrice(), theProduct.getStockQuantity());
+        trolley.add(pNew);
+
+    }
     void checkOut() throws IOException, SQLException {
         if(!trolley.isEmpty()){
             // Group the products in the trolley by productId to optimize stock checking
