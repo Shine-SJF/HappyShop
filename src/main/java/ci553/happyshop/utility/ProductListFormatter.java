@@ -21,18 +21,35 @@ public class ProductListFormatter {
     public static String buildString(ArrayList<Product> proList) {
         StringBuilder sb = new StringBuilder();
         double totalPrice=0;
+
+        ArrayList<String> trolleyProducts = new ArrayList<>();
+
         for (Product pr : proList) {
             int orderedQuantity = pr.getOrderedQuantity();
             //%-18.18s, format the argument as a String,
             // -18 → Left-align the string in 18-character wide space.
             //.18 → Truncate the string to at most 18 characters
+
             String aProduct=String.format(" %-7s %-18.18s (%2d) £%7.2f\n",
                     pr.getProductId(),
                     pr.getProductDescription(),
-                    pr.getOrderedQuantity(),
+                    orderedQuantity,
                     pr.getUnitPrice() * orderedQuantity);
 
-            sb.append(aProduct);
+            // Create check if product is already in trolley
+            // If product in trolley, do not add new entry but instead update quantity
+            if (trolleyProducts.contains(aProduct)){
+                System.out.println(orderedQuantity);
+                orderedQuantity ++;
+                System.out.println(orderedQuantity);
+            }
+            // Else add product to both trolley list and GUI
+            else {
+                trolleyProducts.add(aProduct);
+                sb.append(aProduct);
+            }
+
+
             totalPrice = totalPrice + pr.getUnitPrice() * orderedQuantity;
         }
 
@@ -44,3 +61,9 @@ public class ProductListFormatter {
         return sb.toString();
     }
 }
+
+
+/*
+TO DO:
+  - Find a way to update quantity consistently
+ */
