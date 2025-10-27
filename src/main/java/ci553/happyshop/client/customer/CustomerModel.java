@@ -36,7 +36,7 @@ public class CustomerModel {
 
     //SELECT productID, description, image, unitPrice,inStock quantity
     void search() throws SQLException {
-        String productId = cusView.tfId.getText().trim();
+        String productId = cusView.tfId.getText().trim(); // This line assigns input in search page to variable by conjoining objects
         if(!productId.isEmpty()){
             theProduct = databaseRW.searchByProductId(productId); //search database
             if(theProduct != null && theProduct.getStockQuantity()>0){
@@ -70,7 +70,8 @@ public class CustomerModel {
             //TODO
             // 1. Merges items with the same product ID (combining their quantities).
             // 2. Sorts the products in the trolley by product ID.
-            trolley.add(theProduct);
+            //trolley.add(theProduct);
+            MakingOrganisedTrolley();
             displayTaTrolley = ProductListFormatter.buildString(trolley); //build a String for trolley so that we can show it
         }
         else{
@@ -79,6 +80,17 @@ public class CustomerModel {
         }
         displayTaReceipt=""; // Clear receipt to switch back to trolleyPage (receipt shows only when not empty)
         updateView();
+    }
+
+    void MakingOrganisedTrolley(){
+        for(Product t:trolley){
+            if(t.getProductId().equals(theProduct.getProductId())){
+                t.setOrderedQuantity(t.getOrderedQuantity()+ theProduct.getOrderedQuantity());
+                return;
+            }
+        }
+        Product tNew= new Product(theProduct.getProductId(), theProduct.getProductDescription(), theProduct.getProductImageName(), theProduct.getUnitPrice(), theProduct.getStockQuantity());
+        trolley.add(tNew);
     }
 
     void checkOut() throws IOException, SQLException {
@@ -90,6 +102,7 @@ public class CustomerModel {
             // Note: If the trolley is already organized (merged and sorted), grouping is unnecessary.
             ArrayList<Product> groupedTrolley= groupProductsById(trolley);
             ArrayList<Product> insufficientProducts= databaseRW.purchaseStocks(groupedTrolley);
+
 
             if(insufficientProducts.isEmpty()){ // If stock is sufficient for all products
                 //get OrderHub and tell it to make a new Order
@@ -182,5 +195,8 @@ public class CustomerModel {
     //for test only
     public ArrayList<Product> getTrolley() {
         return trolley;
+    }
+    public void setTheProduct(Product theProduct) {
+        this.theProduct = theProduct;
     }
 }
