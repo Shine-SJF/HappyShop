@@ -11,9 +11,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * TODO
@@ -70,7 +68,8 @@ public class CustomerModel {
             //TODO
             // 1. Merges items with the same product ID (combining their quantities).
             // 2. Sorts the products in the trolley by product ID.
-            trolley.add(theProduct);
+            //trolley.add(theProduct);
+            MakingOrganisedTrolley();
             displayTaTrolley = ProductListFormatter.buildString(trolley); //build a String for trolley so that we can show it
         }
         else{
@@ -81,6 +80,25 @@ public class CustomerModel {
         updateView();
     }
 
+    // Code for week 2 lab
+    void MakingOrganisedTrolley(){
+        for(Product t:trolley){
+            if(t.getProductId().equals(theProduct.getProductId())){
+                t.setOrderedQuantity(t.getOrderedQuantity()+ theProduct.getOrderedQuantity());
+                return;
+            }
+        }
+        Product tNew= new Product(theProduct.getProductId(), theProduct.getProductDescription(), theProduct.getProductImageName(), theProduct.getUnitPrice(), theProduct.getStockQuantity());
+        trolley.add(tNew);
+
+        // code above for merging products above
+        //code for sorting by ID below
+        //Collections.sort(trolley)
+        Collections.sort(trolley, Comparator.comparing(Product::getProductId));
+
+
+    }
+
     void checkOut() throws IOException, SQLException {
         if(!trolley.isEmpty()){
             // Group the products in the trolley by productId to optimize stock checking
@@ -88,8 +106,10 @@ public class CustomerModel {
             // If any products are insufficient, the update will be rolled back.
             // If all products are sufficient, the database will be updated, and insufficientProducts will be empty.
             // Note: If the trolley is already organized (merged and sorted), grouping is unnecessary.
-            ArrayList<Product> groupedTrolley= groupProductsById(trolley);
-            ArrayList<Product> insufficientProducts= databaseRW.purchaseStocks(groupedTrolley);
+           // ArrayList<Product> groupedTrolley= groupProductsById(trolley);
+            // ArrayList<Product> insufficientProducts= databaseRW.purchaseStocks(groupedTrolley);
+
+            ArrayList<Product> insufficientProducts= databaseRW.purchaseStocks(trolley);
 
             if(insufficientProducts.isEmpty()){ // If stock is sufficient for all products
                 //get OrderHub and tell it to make a new Order
