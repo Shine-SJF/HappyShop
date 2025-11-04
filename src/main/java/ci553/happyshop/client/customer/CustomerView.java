@@ -1,5 +1,6 @@
 package ci553.happyshop.client.customer;
 
+import ci553.happyshop.utility.SoundPlayer;
 import ci553.happyshop.utility.UIStyle;
 import ci553.happyshop.utility.WinPosManager;
 import ci553.happyshop.utility.WindowBounds;
@@ -172,14 +173,17 @@ public class CustomerView  {
 
 
     private void buttonClicked(ActionEvent event) {
+        SoundPlayer. play("/Mechanical-click-sound-effectv2.mp3");
         try{
             Button btn = (Button)event.getSource();
             String action = btn.getText();
             if(action.equals("Add to Trolley")){
                 showTrolleyOrReceiptPage(vbTrolleyPage); //ensure trolleyPage shows if the last customer did not close their receiptPage
+
             }
             if(action.equals("OK & Close")){
                 showTrolleyOrReceiptPage(vbTrolleyPage);
+
             }
             cusController.doAction(action);
         }

@@ -6,7 +6,9 @@ import ci553.happyshop.storageAccess.DatabaseRW;
 import ci553.happyshop.orderManagement.OrderHub;
 import ci553.happyshop.utility.StorageLocation;
 import ci553.happyshop.utility.ProductListFormatter;
-
+import javax.sound.sampled.*;
+import java.io.File;
+import java.io.IOException;
 
 
 import java.io.IOException;
@@ -14,6 +16,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,6 +25,29 @@ import java.util.Map;
  * You can either directly modify the CustomerModel class to implement the required tasks,
  * or create a subclass of CustomerModel and override specific methods where appropriate.
  */
+
+
+
+//public class SoundPlayer{
+//    public static void main (String[] args){
+//
+//
+//        try{
+//            File purchase = new File("");
+//audioSystem.getAudioInputStream(purchase);
+//Clip clip  = AudioSystem.getClip();
+//clip.open(audioStream);
+//clip.start();
+//
+//    }
+//}
+//
+//Media media = new Media(getClass().getResource("tada-fanfare-a-6313.mp3").toExternalForm());
+//MediaPlayer mediaPlayer = new MediaPlayer(media);
+//        mediaPlayer.setCycleCount(1);mediaPlayer.play();
+
+
+
 public class CustomerModel {
     public CustomerView cusView;
     public DatabaseRW databaseRW; //Interface type, not specific implementation
@@ -100,6 +126,8 @@ public class CustomerModel {
         Product pNew = new Product(theProduct.getProductId(), theProduct.getProductDescription(), theProduct.getProductImageName() ,theProduct.getUnitPrice(), theProduct.getStockQuantity());
         trolley.add(pNew);
 
+
+
     }
     void checkOut() throws IOException, SQLException {
         if(!trolley.isEmpty()){
@@ -152,6 +180,7 @@ public class CustomerModel {
         updateView();
     }
 
+    Collections.sort(trolley);
     /**
      * Groups products by their productId to optimize database queries and updates.
      * By grouping products, we can check the stock for a given `productId` once, rather than repeatedly
