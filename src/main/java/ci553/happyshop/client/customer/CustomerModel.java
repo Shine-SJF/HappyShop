@@ -125,6 +125,7 @@ public class CustomerModel {
 
         Product pNew = new Product(theProduct.getProductId(), theProduct.getProductDescription(), theProduct.getProductImageName() ,theProduct.getUnitPrice(), theProduct.getStockQuantity());
         trolley.add(pNew);
+        Collections.sort(trolley);
 
 
 
@@ -180,7 +181,7 @@ public class CustomerModel {
         updateView();
     }
 
-    Collections.sort(trolley);
+
     /**
      * Groups products by their productId to optimize database queries and updates.
      * By grouping products, we can check the stock for a given `productId` once, rather than repeatedly
