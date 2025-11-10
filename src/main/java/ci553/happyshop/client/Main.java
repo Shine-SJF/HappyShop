@@ -58,6 +58,7 @@ public class Main extends Application {
         startWarehouseClient();
 
         startEmergencyExit();
+
     }
 
     /** The customer GUI -search prodduct, add to trolley, cancel/submit trolley, view receipt

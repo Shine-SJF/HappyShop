@@ -41,6 +41,8 @@ public record UIStyle() {
     public static final int HistoryWinWidth = 300;
     public static final int HistoryWinHeight = 140;
 
+
+
     public static final int EmergencyExitWinWidth = 200;
     public static final int EmergencyExitWinHeight = 300;
 

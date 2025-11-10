@@ -23,6 +23,7 @@ public class EmergencyExit {
     public static EmergencyExit getEmergencyExit() {
         if (emergencyExit == null)
             emergencyExit = new EmergencyExit();
+
         return emergencyExit;
     }
 
@@ -35,17 +36,19 @@ public class EmergencyExit {
         ivExit.setPreserveRatio(true);
 
         Button btnExit = new Button();
+        btnExit.setOnKeyPressed(event -> SoundPlayer. play("Logoutsfx(1)_01.mp3"));;
         btnExit.setGraphic(ivExit);
         btnExit.setOnAction(event -> {
             Platform.exit(); // Gracefully exit JavaFX
             System.exit(0);//forcefully shut down JVM (in case there are non-JavaFX threads)
+
         });
 
         BorderPane borderPane = new BorderPane();
         borderPane.setCenter(btnExit);
 
 
-      SoundPlayer. play("Logoutsfx(1)_01.mp3");
+
         borderPane.setStyle(UIStyle.rootStyle);
         Scene scene = new Scene(borderPane, WIDTH, HEIGHT);
         Stage window = new Stage();
