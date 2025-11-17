@@ -129,4 +129,6 @@ public class RemoveProductNotifier {
             window.close();
         }
     }
+
+
 }

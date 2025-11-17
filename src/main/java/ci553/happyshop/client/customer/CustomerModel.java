@@ -23,6 +23,8 @@ public class CustomerModel {
     public DatabaseRW databaseRW; //Interface type, not specific implementation
                                   //Benefits: Flexibility: Easily change the database implementation.
 
+
+
     private Product theProduct =null; // product found from search
     private ArrayList<Product> trolley =  new ArrayList<>(); // a list of products in trolley
 
@@ -30,7 +32,12 @@ public class CustomerModel {
     private String imageName = "imageHolder.jpg";                // Image to show in product preview (Search Page)
     private String displayLaSearchResult = "No Product was searched yet"; // Label showing search result message (Search Page)
     private String displayTaTrolley = "";                                // Text area content showing current trolley items (Trolley Page)
-    private String displayTaReceipt = "";                                // Text area content showing receipt after checkout (Receipt Page)
+    private String displayTaReceipt = "";
+    public RemoveProductNotifier removeProductNotifier;// Text area content showing receipt after checkout (Receipt Page)
+    private String ErrorMessage = "";
+
+
+    public CustomerModel() {}
 
     //SELECT productID, description, image, unitPrice,inStock quantity
     void search() throws SQLException {
@@ -94,6 +101,7 @@ public class CustomerModel {
         // code above for merging products above
         //code for sorting by ID below
         //Collections.sort(trolley)
+        //Uses a method sort
         Collections.sort(trolley, Comparator.comparing(Product::getProductId));
 
 
@@ -141,8 +149,25 @@ public class CustomerModel {
                 // 2. Trigger a message window to notify the customer about the insufficient stock, rather than directly changing displayLaSearchResult.
                 //You can use the provided RemoveProductNotifier class and its showRemovalMsg method for this purpose.
                 //remember close the message window where appropriate (using method closeNotifierWindow() of RemoveProductNotifier class)
-                displayLaSearchResult = "Checkout failed due to insufficient stock for the following products:\n" + errorMsg.toString();
-                System.out.println("stock is not enough");
+
+                // for loop that removes items from the trolley
+                for (Product p : insufficientProducts){
+                    trolley.remove(p);
+                }
+                // updating the visual trolley
+                displayTaTrolley = ProductListFormatter.buildString(trolley);
+                //Printing the error message
+                ErrorMessage = errorMsg.toString();
+                removeProductNotifier.showRemovalMsg(ErrorMessage);
+
+
+
+
+
+
+
+                //displayLaSearchResult = "Checkout failed due to insufficient stock for the following products:\n" + errorMsg.toString();
+                //System.out.println("stock is not enough");
             }
         }
         else{

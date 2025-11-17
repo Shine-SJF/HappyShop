@@ -1,6 +1,41 @@
 package ci553.happyshop.utility;
 
 /**
+ * UIStyle is a centralized Java final class that holds all JavaFX UI-related style and size
+ constants
+ public final class UIStyle {
+ // Private constructor prevents instantiation
+ private UIStyle() {
+ throw new UnsupportedOperationException("UIStyle is a utility class");
+ }
+ // Other code remains unchanged
+ }
+ * used across all client views in the system.
+ *
+ * These values are grouped here rather than being hardcoded throughout the codebase:
+ * - improves maintainability, ensures style consistency,
+ * - avoids hardcoded values scattered across the codebase.
+ *
+ * Example usages:
+ * - UIStyle.HistoryWinHeight for setting the height of the order history window
+ * - UIStyle.labelStyle for applying consistent styling to labels
+ *
+ * Design rationale:
+ * - Declared as a final class: prevents inheritance and misuse
+ * - Private constructor: prevents instantiation (this is a static-only utility class)
+ * - Holds only static constants: ensures minimal memory usage and clean syntax
+ *
+ * Why a Record is NOT appropriate:
+ * - Records are intended for immutable instance data (e.g., DTOs), not static constants
+ * - This class has no record components — everything is static
+ * - We're using this as a utility container, not a data model
+ *
+ * Reminder:
+ * Just because a class has no behaviour and only data does NOT mean it should be a record.
+ * If all members are static constants, use a final utility class like this one.
+ */
+
+/**
  * UIStyle is a centralized Java record that holds all JavaFX UI-related style and size constants
  * used across all client views in the system.
  *
@@ -21,7 +56,12 @@ package ci553.happyshop.utility;
  *  - Cleaner syntax: Avoids unnecessary boilerplate (constructors, getters, etc.).
  */
 
-public record UIStyle() {
+public final class UIStyle {
+    private UIStyle() {
+        throw new UnsupportedOperationException("UIStyle is a utility class");
+    }
+
+
 
     public static final int customerWinWidth = 600;
     public static final int customerWinHeight = 300;
