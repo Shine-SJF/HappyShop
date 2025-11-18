@@ -1,37 +1,51 @@
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import javax.sound.sampled.*;
+import java.io.IOException;
+import java.net.URL;
 
-public class ShopAudioControls extends JPanel {
+public class AudioFeature extends JFrame {
+    private Clip backgroundClip;
+    private static AudioFeature instance;   // singleton
 
-    private final JSlider volumeSlider = new JSlider(0, 100, 80); // start at 80 %
-    private final JCheckBox muteCheck    = new JCheckBox("Mute");
+    private AudioFeature() { initClip(); }
 
-    public ShopAudioControls() {
-        setLayout(new FlowLayout(FlowLayout.LEFT));
-        add(new JLabel("Background Music:"));
-        add(volumeSlider);
-        add(muteCheck);
+    public static AudioFeature getInstance() {
+        if (instance == null) instance = new AudioFeature();
+        return instance;
+    }
 
-        // ---- volume slider ----
-        volumeSlider.setToolTipText("Adjust music volume");
-        volumeSlider.addChangeListener(e -> {
-            if (!muteCheck.isSelected()) {
-                float vol = volumeSlider.getValue() / 100f; // 0.0‑1.0
-                AudioFeature.getInstance().setVolume(vol);
-            }
-        });
+    /** Load and prepare the looping clip */
+    private void initClip() {
+        try {
+            URL url = getClass().getResource("/resources/music/happyshop_loop.wav");
+            AudioInputStream ais = AudioSystem.getAudioInputStream(url);
+            backgroundClip = AudioSystem.getClip();
+            backgroundClip.open(ais);
+            backgroundClip.loop(Clip.LOOP_CONTINUOUSLY);
+        } catch (UnsupportedAudioFileException |
+                 IOException |
+                 LineUnavailableException e) {
+            e.printStackTrace(); // handle gracefully in production
+        }
+    }
 
-        // ---- mute checkbox ----
-        muteCheck.addItemListener(e -> {
-            if (e.getStateChange() == ItemEvent.SELECTED) {
-                AudioFeature.getInstance().stopMusic();
-            } else {
-                // restore previous volume
-                float vol = volumeSlider.getValue() / 100f;
-                AudioFeature.getInstance().setVolume(vol);
-                AudioFeature.getInstance().startMusic();
-            }
-        });
+    /** Call when the shop UI is shown */
+    public void startMusic() {
+        if (backgroundClip != null && !backgroundClip.isRunning())
+            backgroundClip.start();
+    }
+
+    /** Call when leaving the shop */
+    public void stopMusic() {
+        if (backgroundClip != null && backgroundClip.isRunning())
+            backgroundClip.stop();
+    }
+
+    /** Optional: expose volume control */
+    public void setVolume(float value) { // value 0.0‑1.0
+        if (backgroundClip != null) {
+            FloatControl vol = (FloatControl) backgroundClip.getControl(FloatControl.Type.MASTER_GAIN);
+            float dB = (float) (Math.log10(value) * 20);
+            vol.setValue(dB);
+        }
     }
 }
