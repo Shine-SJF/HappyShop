@@ -61,17 +61,17 @@ public class CustomerModel {
         }
         updateView();
     }
+    // trolley.add(theProduct) — Product is appended to the end of the trolley.
+    // To keep the trolley organized, add code here or call a method that:
+    //TODO
+    // 1. Merges items with the same product ID (combining their quantities).
+    // 2. Sorts the products in the trolley by product ID.
 
     void addToTrolley(){
         if(theProduct!= null){
+            mergeAndSortTrolley(theProduct); // call the new method
+            displayTaTrolley = ProductListFormatter.buildString(trolley);
 
-            // trolley.add(theProduct) — Product is appended to the end of the trolley.
-            // To keep the trolley organized, add code here or call a method that:
-            //TODO
-            // 1. Merges items with the same product ID (combining their quantities).
-            // 2. Sorts the products in the trolley by product ID.
-            trolley.add(theProduct);
-            displayTaTrolley = ProductListFormatter.buildString(trolley); //build a String for trolley so that we can show it
         }
         else{
             displayLaSearchResult = "Please search for an available product before adding it to the trolley";
@@ -80,6 +80,40 @@ public class CustomerModel {
         displayTaReceipt=""; // Clear receipt to switch back to trolleyPage (receipt shows only when not empty)
         updateView();
     }
+
+    private void mergeAndSortTrolley(Product newProduct) {
+        // first check the ID of products if theyre in the trolley
+
+        boolean found = false;
+        for (Product p : trolley) {
+            if (p.getProductId().equals(newProduct.getProductId())) { // this merges the products together.
+                p.setOrderedQuantity(p.getOrderedQuantity() +1);
+                found = true;
+                break;
+            }
+        }
+        // if product isnt in trolley you can just add it to the trolley.
+        if (!found) {
+            // creating a copy instead of just adding the reference
+            Product copyOfProduct = new Product(
+                    newProduct.getProductId(),
+                    newProduct.getProductDescription(),
+                    newProduct.getProductImageName(),
+                    newProduct.getUnitPrice(),
+                    newProduct.getStockQuantity()
+
+
+
+
+                    );
+            copyOfProduct.setOrderedQuantity(1);
+            trolley.add(copyOfProduct);
+
+        }
+        // SORT IT VIA ID
+        trolley.sort(Product::compareTo);
+    }
+
 
     void checkOut() throws IOException, SQLException {
         if(!trolley.isEmpty()){
