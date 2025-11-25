@@ -37,13 +37,20 @@ public class CustomerModel {
 
     //SELECT productID, description, image, unitPrice,inStock quantity
     void search() throws SQLException {
-        String productId = cusView.tfId.getText().trim();
-        if(!productId.isEmpty()){
-            theProduct = databaseRW.searchByProductId(productId); //search database
-            if(theProduct != null && theProduct.getStockQuantity()>0){
-                double unitPrice = theProduct.getUnitPrice();
-                String description = theProduct.getProductDescription();
-                int stock = theProduct.getStockQuantity();
+        String keyword = cusView.tfId.getText().trim();
+
+        if (!keyword.isEmpty()) {
+            // Use the existing searchProduct method
+            ArrayList<Product> results = databaseRW.searchProduct(keyword);
+
+            if (!results.isEmpty()) {
+                // For simplicity, take the first match
+                theProduct = results.get(0);
+
+                if (theProduct.getStockQuantity() > 0) {
+                    double unitPrice = theProduct.getUnitPrice();
+                    String description = theProduct.getProductDescription();
+                    int stock = theProduct.getStockQuantity();
 
                 String baseInfo = String.format("Product_Id: %s\n%s,\nPrice: £%.2f", productId, description, unitPrice);
                 String quantityInfo = stock < 100 ? String.format("\n%d units left.", stock) : "";
