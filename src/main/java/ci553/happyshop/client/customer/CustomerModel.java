@@ -2,16 +2,17 @@ package ci553.happyshop.client.customer;
 
 import ci553.happyshop.catalogue.Order;
 import ci553.happyshop.catalogue.Product;
-import ci553.happyshop.storageAccess.DatabaseRW;
 import ci553.happyshop.orderManagement.OrderHub;
-import ci553.happyshop.utility.StorageLocation;
+import ci553.happyshop.storageAccess.DatabaseRW;
 import ci553.happyshop.utility.ProductListFormatter;
+import ci553.happyshop.utility.StorageLocation;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,12 +66,26 @@ public class CustomerModel {
     void addToTrolley(){
         if(theProduct!= null){
 
+            //Find if product already exists in trolley
+            for (Product p : trolley) {
+                if (p.getProductId().equals(theProduct.getProductId())) {
+                    // Step 2b: Check if adding one more would exceed stock
+                    if (p.getOrderedQuantity() + 1 > theProduct.getStockQuantity()) {
+                        displayLaSearchResult = "Insufficient stock available for product: " + theProduct.getProductId();
+                        System.out.println("Insufficient stock available");
+                        return; // stop here, don’t add
+                    }
+                }
+            }
+
             // trolley.add(theProduct) — Product is appended to the end of the trolley.
             // To keep the trolley organized, add code here or call a method that:
             //TODO
             // 1. Merges items with the same product ID (combining their quantities).
             // 2. Sorts the products in the trolley by product ID.
-            trolley.add(theProduct);
+            //trolley.add(theProduct);
+            makeOrganizedTrolley();
+            trolley.sort(Comparator.comparing(Product::getProductId));
             displayTaTrolley = ProductListFormatter.buildString(trolley); //build a String for trolley so that we can show it
         }
         else{
@@ -79,6 +94,17 @@ public class CustomerModel {
         }
         displayTaReceipt=""; // Clear receipt to switch back to trolleyPage (receipt shows only when not empty)
         updateView();
+    }
+
+    void makeOrganizedTrolley(){
+        for(Product p : trolley) {
+            if (p.getProductId().equals(theProduct.getProductId())) {
+                p.setOrderedQuantity(p.getOrderedQuantity()+ 1);
+                return;
+            }
+        }
+        theProduct.setOrderedQuantity(1);
+        trolley.add(theProduct);
     }
 
     void checkOut() throws IOException, SQLException {
@@ -115,12 +141,29 @@ public class CustomerModel {
                 }
                 theProduct=null;
 
+
                 //TODO
                 // Add the following logic here:
                 // 1. Remove products with insufficient stock from the trolley.
                 // 2. Trigger a message window to notify the customer about the insufficient stock, rather than directly changing displayLaSearchResult.
                 //You can use the provided RemoveProductNotifier class and its showRemovalMsg method for this purpose.
                 //remember close the message window where appropriate (using method closeNotifierWindow() of RemoveProductNotifier class)
+
+
+                // Step 1: Create a notifier for stock shortages
+                RemoveProductNotifier notifier = new RemoveProductNotifier();
+
+                // Step 2: Show a message window listing insufficient products
+                notifier.showRemovalMsg(errorMsg.toString());
+
+                // Step 3: Remove each insufficient product from the trolley
+                for (Product p : insufficientProducts) {
+                    trolley.remove(p);
+                }
+
+                // Step 4: Close the notifier window
+                notifier.closeNotifierWindow();
+
                 displayLaSearchResult = "Checkout failed due to insufficient stock for the following products:\n" + errorMsg.toString();
                 System.out.println("stock is not enough");
             }
@@ -180,7 +223,8 @@ public class CustomerModel {
      //File.toURI(): Converts a File object (a file on the filesystem) to a URI object
 
     //for test only
-    public ArrayList<Product> getTrolley() {
-        return trolley;
+    public ArrayList<Product> getTrolley() {return trolley;}
+    public void setTheProduct(Product theProduct){
+        this.theProduct = theProduct;
     }
 }
