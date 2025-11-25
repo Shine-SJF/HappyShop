@@ -86,6 +86,19 @@ public interface DatabaseRW {
      * @return true if the ID is available, false if it already exists in the database
      */
     boolean isProIdAvailable(String productId) throws SQLException;
+
+    ArrayList<Product> ReduceStockTo50(ArrayList<Product> proList) throws SQLException;
+
+    /**
+     * Updates the details of a product identified by its ID.
+     *
+     * @param id         the product ID
+     * @param des        the new description
+     * @param price      the new price
+     * @param imageName  the new image file name
+     * @param stock      the updated stock quantity
+     */
+
 }
 
 

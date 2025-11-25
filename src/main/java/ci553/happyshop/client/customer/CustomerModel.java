@@ -1,7 +1,9 @@
 package ci553.happyshop.client.customer;
 
+import ci553.happyshop.catalogue.exceptions.ExcessiveOrderQuantityException;
 import ci553.happyshop.catalogue.Order;
 import ci553.happyshop.catalogue.Product;
+import ci553.happyshop.catalogue.exceptions.UnderMinimumPaymentException;
 import ci553.happyshop.storageAccess.DatabaseRW;
 import ci553.happyshop.orderManagement.OrderHub;
 import ci553.happyshop.utility.StorageLocation;
@@ -33,7 +35,10 @@ public class CustomerModel {
     private String displayLaSearchResult = "No Product was searched yet"; // Label showing search result message (Search Page)
     private String displayTaTrolley = "";                                // Text area content showing current trolley items (Trolley Page)
     private String displayTaReceipt = "";
+
+    //variables for the error messages for customers
     public RemoveProductNotifier removeProductNotifier;// Text area content showing receipt after checkout (Receipt Page)
+    public MinPayNotifer minPayNotifier;
     private String ErrorMessage = "";
 
 
@@ -69,13 +74,6 @@ public class CustomerModel {
 
     void addToTrolley(){
         if(theProduct!= null){
-
-            // trolley.add(theProduct) — Product is appended to the end of the trolley.
-            // To keep the trolley organized, add code here or call a method that:
-            //TODO
-            // 1. Merges items with the same product ID (combining their quantities).
-            // 2. Sorts the products in the trolley by product ID.
-            //trolley.add(theProduct);
             MakingOrganisedTrolley();
             displayTaTrolley = ProductListFormatter.buildString(trolley); //build a String for trolley so that we can show it
         }
@@ -98,77 +96,15 @@ public class CustomerModel {
         Product tNew= new Product(theProduct.getProductId(), theProduct.getProductDescription(), theProduct.getProductImageName(), theProduct.getUnitPrice(), theProduct.getStockQuantity());
         trolley.add(tNew);
 
-        // code above for merging products above
-        //code for sorting by ID below
-        //Collections.sort(trolley)
-        //Uses a method sort
         Collections.sort(trolley, Comparator.comparing(Product::getProductId));
 
 
     }
 
     void checkOut() throws IOException, SQLException {
+
         if(!trolley.isEmpty()){
-            // Group the products in the trolley by productId to optimize stock checking
-            // Check the database for sufficient stock for all products in the trolley.
-            // If any products are insufficient, the update will be rolled back.
-            // If all products are sufficient, the database will be updated, and insufficientProducts will be empty.
-            // Note: If the trolley is already organized (merged and sorted), grouping is unnecessary.
-           // ArrayList<Product> groupedTrolley= groupProductsById(trolley);
-            // ArrayList<Product> insufficientProducts= databaseRW.purchaseStocks(groupedTrolley);
-
-            ArrayList<Product> insufficientProducts= databaseRW.purchaseStocks(trolley);
-
-            if(insufficientProducts.isEmpty()){ // If stock is sufficient for all products
-                //get OrderHub and tell it to make a new Order
-                OrderHub orderHub =OrderHub.getOrderHub();
-                Order theOrder = orderHub.newOrder(trolley);
-                trolley.clear();
-                displayTaTrolley ="";
-                displayTaReceipt = String.format(
-                        "Order_ID: %s\nOrdered_Date_Time: %s\n%s",
-                        theOrder.getOrderId(),
-                        theOrder.getOrderedDateTime(),
-                        ProductListFormatter.buildString(theOrder.getProductList())
-                );
-                System.out.println(displayTaReceipt);
-            }
-            else{ // Some products have insufficient stock — build an error message to inform the customer
-                StringBuilder errorMsg = new StringBuilder();
-                for(Product p : insufficientProducts){
-                    errorMsg.append("\u2022 "+ p.getProductId()).append(", ")
-                            .append(p.getProductDescription()).append(" (Only ")
-                            .append(p.getStockQuantity()).append(" available, ")
-                            .append(p.getOrderedQuantity()).append(" requested)\n");
-                }
-                theProduct=null;
-
-                //TODO
-                // Add the following logic here:
-                // 1. Remove products with insufficient stock from the trolley.
-                // 2. Trigger a message window to notify the customer about the insufficient stock, rather than directly changing displayLaSearchResult.
-                //You can use the provided RemoveProductNotifier class and its showRemovalMsg method for this purpose.
-                //remember close the message window where appropriate (using method closeNotifierWindow() of RemoveProductNotifier class)
-
-                // for loop that removes items from the trolley
-                for (Product p : insufficientProducts){
-                    trolley.remove(p);
-                }
-                // updating the visual trolley
-                displayTaTrolley = ProductListFormatter.buildString(trolley);
-                //Printing the error message
-                ErrorMessage = errorMsg.toString();
-                removeProductNotifier.showRemovalMsg(ErrorMessage);
-
-
-
-
-
-
-
-                //displayLaSearchResult = "Checkout failed due to insufficient stock for the following products:\n" + errorMsg.toString();
-                //System.out.println("stock is not enough");
-            }
+            ValidateCheckout();
         }
         else{
             displayTaTrolley = "Your trolley is empty";
@@ -224,8 +160,125 @@ public class CustomerModel {
      //Path.toUri(): Converts a Path object (a file or a directory path) to a URI object.
      //File.toURI(): Converts a File object (a file on the filesystem) to a URI object
 
+    //All Methods below this comment are created by me for the CustomerModel Class
+
+
+
+
+
+    public void ValidateCheckout() throws IOException, SQLException {
+        ArrayList<Product> insufficientProducts= databaseRW.purchaseStocks(trolley);
+        ValidateCheckOutMinTotal();
+        ValidationCheckOutComplete(insufficientProducts);
+        ValidateCheckOutStock(insufficientProducts);
+
+
+
+    }
+
+    public void ValidateCheckOutStock(ArrayList<Product> insufficientProducts) throws IOException, SQLException {
+        if(!insufficientProducts.isEmpty()){
+            StringBuilder errorMsg = new StringBuilder();
+            for (Product p : insufficientProducts) {
+                errorMsg.append("\u2022 " + p.getProductId()).append(", ")
+                        .append(p.getProductDescription()).append(" (Only ")
+                        .append(p.getStockQuantity()).append(" available, ")
+                        .append(p.getOrderedQuantity()).append(" requested)\n");
+            }
+            theProduct = null;
+            // for loop that removes items from the trolley
+            for (Product p : insufficientProducts) {
+                trolley.remove(p);
+            }
+            // updating the visual trolley
+            displayTaTrolley = ProductListFormatter.buildString(trolley);
+            //Printing the error message
+            ErrorMessage = errorMsg.toString();
+            removeProductNotifier.showRemovalMsg(ErrorMessage);
+        }
+    }
+
+
+    public void ValidationCheckOutComplete(ArrayList<Product> insufficientProducts) throws IOException, SQLException {
+        if(insufficientProducts.isEmpty() && !ValidateCheckOutMinTotal()){
+            OrderHub orderHub =OrderHub.getOrderHub();
+            Order theOrder = orderHub.newOrder(trolley);
+            trolley.clear();
+            displayTaTrolley ="";
+            displayTaReceipt = String.format(
+                    "Order_ID: %s\nOrdered_Date_Time: %s\n%s",
+                    theOrder.getOrderId(),
+                    theOrder.getOrderedDateTime(),
+                    ProductListFormatter.buildString(theOrder.getProductList())
+            );
+            System.out.println(displayTaReceipt);
+        }
+        else{
+        }
+    }
+
+    public boolean ValidateCheckOutMinTotal() throws IOException, SQLException {
+        double totalprice = 0;
+        for(Product t:trolley){
+            int OrderQuantity = t.getOrderedQuantity();
+            totalprice = totalprice + t.getUnitPrice() * OrderQuantity;
+        }
+        try{
+            if(totalprice < 5){
+                throw new UnderMinimumPaymentException("Less than £5");
+
+            }
+        } catch (UnderMinimumPaymentException e) {
+            for(Product t:trolley){
+
+            }
+            minPayNotifier.showRemovalMsg("Under minimum payment amount");
+            return true;
+
+        }
+        return false;
+
+    }
+
+
+
+
+
+
+
+
+    public void ValidateQuanitity() throws IOException, SQLException {
+        for (Product t : trolley) {
+            try {
+                if (t.getOrderedQuantity() > 50) {
+                    throw new ExcessiveOrderQuantityException("Must order Less than 50");
+                }
+            } catch (ExcessiveOrderQuantityException e) {
+                removeProductNotifier.showRemovalMsg("Can't order more then 50");
+            }
+        }
+    }
+
+
+
+
     //for test only
     public ArrayList<Product> getTrolley() {
         return trolley;
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

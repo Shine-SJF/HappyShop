@@ -82,6 +82,10 @@ public class Main extends Application {
         RemoveProductNotifier removeProductNotifier = new RemoveProductNotifier();
         removeProductNotifier.cusView = cusView;
         cusModel.removeProductNotifier = removeProductNotifier;
+
+        MinPayNotifer minPayNotifier = new MinPayNotifer();
+        minPayNotifier.cusView = cusView;
+        cusModel.minPayNotifier = minPayNotifier;
     }
 
     /** The picker GUI, - for staff to pack customer's order,

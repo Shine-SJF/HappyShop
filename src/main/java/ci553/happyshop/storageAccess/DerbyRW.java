@@ -311,6 +311,12 @@ public class DerbyRW implements DatabaseRW {
             return false; // Default case (should not happen)
         }
     }
+    //this overide was auto suggested by InteliJ after error came up keep note
+
+    @Override
+    public ArrayList<Product> ReduceStockTo50(ArrayList<Product> proList) throws SQLException {
+        return null;
+    }
 
     //   /images/0001TV.jpg
     //warehouse adds a new product to database

@@ -44,5 +44,9 @@ public class CustomerClient extends Application {
         removeProductNotifier.cusView = cusView;
         cusModel.removeProductNotifier = removeProductNotifier;
 
+        MinPayNotifer minPayNotifer = new MinPayNotifer();
+        minPayNotifer.cusView = cusView;
+        cusModel.minPayNotifier = minPayNotifer;
+
     }
 }

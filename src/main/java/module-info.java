@@ -19,5 +19,9 @@ module ci553.happyshop {
     exports ci553.happyshop.client.orderTracker;
     exports ci553.happyshop.client.emergency;
     exports ci553.happyshop.systemSetup;
+    exports ci553.happyshop.catalogue;
+    opens ci553.happyshop.catalogue;
+    exports ci553.happyshop.catalogue.exceptions;
+    opens ci553.happyshop.catalogue.exceptions;
 
 }
