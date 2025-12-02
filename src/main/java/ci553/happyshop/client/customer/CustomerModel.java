@@ -14,6 +14,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.Set;
+import java.util.Comparator;
 
 /**
  * TODO
@@ -121,6 +124,26 @@ public class CustomerModel {
                 // 2. Trigger a message window to notify the customer about the insufficient stock, rather than directly changing displayLaSearchResult.
                 //You can use the provided RemoveProductNotifier class and its showRemovalMsg method for this purpose.
                 //remember close the message window where appropriate (using method closeNotifierWindow() of RemoveProductNotifier class)
+                Set<String> insufficientIds = insufficientProducts.stream()
+                        .map(Product::getProductId)
+                        .collect(Collectors.toSet());
+
+                trolley.removeIf(p -> insufficientIds.contains(p.getProductId()));
+
+                if (trolley.isEmpty()) {
+                    displayTaTrolley = "Your trolley is empty (items with insufficient stock were removed).";
+                } else {
+                    trolley.sort(Comparator.comparing(Product::getProductId));
+                    displayTaTrolley = ProductListFormatter.buildString(trolley);
+                }
+
+                RemoveProductNotifier notifier = new RemoveProductNotifier();
+                notifier.showRemovalMsg(
+                        "Checkout failed due to insufficient stock for the following products:\n\n"
+                                + errorMsg.toString()
+                );
+
+
                 displayLaSearchResult = "Checkout failed due to insufficient stock for the following products:\n" + errorMsg.toString();
                 System.out.println("stock is not enough");
             }
