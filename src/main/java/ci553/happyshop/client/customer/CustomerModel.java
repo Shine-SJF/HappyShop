@@ -11,9 +11,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * TODO
@@ -21,6 +19,7 @@ import java.util.Map;
  * or create a subclass of CustomerModel and override specific methods where appropriate.
  */
 public class CustomerModel {
+    public CustomerCard cusCard;
     public CustomerView cusView;
     public DatabaseRW databaseRW; //Interface type, not specific implementation
                                   //Benefits: Flexibility: Easily change the database implementation.
@@ -64,13 +63,11 @@ public class CustomerModel {
 
     void addToTrolley(){
         if(theProduct!= null){
-
-            // trolley.add(theProduct) — Product is appended to the end of the trolley.
-            // To keep the trolley organized, add code here or call a method that:
-            //TODO
-            // 1. Merges items with the same product ID (combining their quantities).
-            // 2. Sorts the products in the trolley by product ID.
-            trolley.add(theProduct);
+            organizeTrolley();
+            // Sort trolley in Asc by productId
+            trolley.sort(
+                    Comparator.comparing(Product::getProductId)
+            );
             displayTaTrolley = ProductListFormatter.buildString(trolley); //build a String for trolley so that we can show it
         }
         else{
@@ -81,6 +78,25 @@ public class CustomerModel {
         updateView();
     }
 
+    void organizeTrolley() {
+        /* iterate through trolley and check if item in trolley is same as current product
+        * add the item quantities
+         */
+        for (Product pr : trolley) {
+            if (pr.getProductId().equals(theProduct.getProductId())) {
+                pr.setOrderedQuantity(pr.getOrderedQuantity() + theProduct.getOrderedQuantity());
+                return;
+            }
+        }
+        // Establish new product to avoid quantity multiplying
+        Product newPr = new Product(
+                theProduct.getProductId(),
+                theProduct.getProductDescription(),
+                theProduct.getProductImageName(),
+                theProduct.getUnitPrice(),
+                theProduct.getOrderedQuantity());
+        trolley.add(newPr);
+    }
     void checkOut() throws IOException, SQLException {
         if(!trolley.isEmpty()){
             // Group the products in the trolley by productId to optimize stock checking
@@ -130,6 +146,53 @@ public class CustomerModel {
             System.out.println("Your trolley is empty");
         }
         updateView();
+    }
+
+    /* check if trolley is under £5
+    *  if so alert user and force cash screen
+    * otherwise continue to card payment */
+    void cashOnlyCheck () throws SQLException, IOException {
+        double totalPrice = 0;
+        for (Product pr : trolley) {
+            totalPrice += pr.getOrderedQuantity() * pr.getUnitPrice();
+        }
+        System.out.println("Total price is " + totalPrice);
+        if (totalPrice < 5) {
+            cusView.forceCash();
+            cusView.cashPaymentPage();
+        }
+        else{
+            cusView.cardPaymentPage();
+        }
+    }
+
+    void payCard() throws IOException, SQLException {
+        boolean cardValidated = false;
+        // validate details in customer card, run checkout if valid
+        cardValidated = cusCard.validate();
+        if (cardValidated) {
+            cusView.paymentAccepted(0);
+            checkOut();
+        }
+        else{
+            cusView.cardInvalid();
+        }
+    }
+
+    void payCash(double cashAmount) throws IOException, SQLException {
+        // get trolley total price, if cash paid is enough then accept and move to checkout
+        double totalPrice = 0;
+        for (Product pr : trolley) {
+            totalPrice += pr.getOrderedQuantity() * pr.getUnitPrice();
+        }
+        if (cashAmount > 0 &&  cashAmount >= totalPrice) {
+            double change =  cashAmount - totalPrice;
+            cusView.paymentAccepted(change);
+            checkOut();
+        }
+        else{
+            cusView.cashFailed();
+        };
     }
 
     /**

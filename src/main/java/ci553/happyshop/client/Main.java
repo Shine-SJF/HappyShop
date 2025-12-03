@@ -73,11 +73,14 @@ public class Main extends Application {
         CustomerView cusView = new CustomerView();
         CustomerController cusController = new CustomerController();
         CustomerModel cusModel = new CustomerModel();
+        CustomerCard cusCard = new CustomerCard();
         DatabaseRW databaseRW = DatabaseRWFactory.createDatabaseRW();
 
         cusView.cusController = cusController;
         cusController.cusModel = cusModel;
+        cusController.cusCard = cusCard;
         cusModel.cusView = cusView;
+        cusModel.cusCard = cusCard;
         cusModel.databaseRW = databaseRW;
         cusView.start(new Stage());
 
