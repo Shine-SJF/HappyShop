@@ -12,8 +12,7 @@ import javafx.scene.layout.HBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-public class MinPayNotifer {
-
+public class QuantityErrorNotifier {
     public CustomerView cusView; //tracking the window of cusView
 
     private static int WIDTH = UIStyle.removeProNotifierWinWidth;
@@ -78,7 +77,7 @@ public class MinPayNotifer {
 
         window = new Stage();
         window.initModality(Modality.NONE); //Optional: explicitly set as non-blocking, though this is the default
-        window.setTitle("Min Pay notifier");
+        window.setTitle("Quantity Error");
         window.setScene(scene);
 
         //get bounds of betterCustomer window which trigers the ProductRemovalNotifier

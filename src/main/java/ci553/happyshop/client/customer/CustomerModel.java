@@ -39,6 +39,7 @@ public class CustomerModel {
     //variables for the error messages for customers
     public RemoveProductNotifier removeProductNotifier;// Text area content showing receipt after checkout (Receipt Page)
     public MinPayNotifer minPayNotifier;
+    public QuanitityErrorNotifier quanitityErrorNotifier;
     private String ErrorMessage = "";
 
 
@@ -167,13 +168,10 @@ public class CustomerModel {
 
 
     public void ValidateCheckout() throws IOException, SQLException {
-        ArrayList<Product> insufficientProducts= databaseRW.purchaseStocks(trolley);
         ValidateCheckOutMinTotal();
-        ValidationCheckOutComplete(insufficientProducts);
-        ValidateCheckOutStock(insufficientProducts);
-
-
-
+        ArrayList<Product> TooManyOrderedProducts = databaseRW.ReduceStockTo50(trolley);
+        ValidateQuanitity(TooManyOrderedProducts);
+        ValidationCheckOutComplete(TooManyOrderedProducts);
     }
 
     public void ValidateCheckOutStock(ArrayList<Product> insufficientProducts) throws IOException, SQLException {
@@ -199,8 +197,8 @@ public class CustomerModel {
     }
 
 
-    public void ValidationCheckOutComplete(ArrayList<Product> insufficientProducts) throws IOException, SQLException {
-        if(insufficientProducts.isEmpty() && !ValidateCheckOutMinTotal()){
+    public void ValidationCheckOutComplete( ArrayList<Product> TooManyOrderedProducts) throws IOException, SQLException {
+        if(TooManyOrderedProducts.isEmpty() && !ValidateCheckOutMinTotal() && !ValidateQuanitity(TooManyOrderedProducts)){
             OrderHub orderHub =OrderHub.getOrderHub();
             Order theOrder = orderHub.newOrder(trolley);
             trolley.clear();
@@ -213,8 +211,7 @@ public class CustomerModel {
             );
             System.out.println(displayTaReceipt);
         }
-        else{
-        }
+
     }
 
     public boolean ValidateCheckOutMinTotal() throws IOException, SQLException {
@@ -226,12 +223,8 @@ public class CustomerModel {
         try{
             if(totalprice < 5){
                 throw new UnderMinimumPaymentException("Less than £5");
-
             }
         } catch (UnderMinimumPaymentException e) {
-            for(Product t:trolley){
-
-            }
             minPayNotifier.showRemovalMsg("Under minimum payment amount");
             return true;
 
@@ -240,23 +233,89 @@ public class CustomerModel {
 
     }
 
-
-
-
-
-
-
-
-    public void ValidateQuanitity() throws IOException, SQLException {
-        for (Product t : trolley) {
-            try {
-                if (t.getOrderedQuantity() > 50) {
-                    throw new ExcessiveOrderQuantityException("Must order Less than 50");
+    public boolean ValidateQuanitity(ArrayList<Product> TooManyOrderedProducts) throws IOException, SQLException {
+        if(!TooManyOrderedProducts.isEmpty()){
+            for(Product t:TooManyOrderedProducts){
+                try{
+                    if(t.getOrderedQuantity() > 50){
+                        throw new ExcessiveOrderQuantityException("Excessive order quantity");
+                    }
                 }
-            } catch (ExcessiveOrderQuantityException e) {
-                removeProductNotifier.showRemovalMsg("Can't order more then 50");
+                catch(ExcessiveOrderQuantityException e){
+                    StringBuilder errorMsg = new StringBuilder();
+                    for (Product p : TooManyOrderedProducts) {
+                        errorMsg.append("\u2022 " + p.getProductId()).append(", ")
+                                .append(p.getProductDescription()).append("")
+                                .append(p.getOrderedQuantity()).append("requested)")
+                                .append(" Only up to 50 allowed to be ordered\n");
+                    }
+                    theProduct = null;
+                    for (Product p : TooManyOrderedProducts) {
+                        trolley.remove(p);
+                    }
+
+                    displayTaTrolley = ProductListFormatter.buildString(trolley);
+                    //Printing the error message
+                    ErrorMessage = errorMsg.toString();
+                    removeProductNotifier.showRemovalMsg(ErrorMessage);
+                    return true;
+                }
+                try{
+                    if(t.getOrderedQuantity() < 50){
+                        throw new ExcessiveOrderQuantityException("Excessive order quantity 2");
+                    }
+                }
+                catch(ExcessiveOrderQuantityException e){
+                    StringBuilder errorMsg = new StringBuilder();
+                    for (Product p : TooManyOrderedProducts) {
+                        errorMsg.append("\u2022 " + p.getProductId()).append(", ")
+                                .append(p.getProductDescription()).append(" (Only ")
+                                .append(p.getStockQuantity()).append(" available, ")
+                                .append(p.getOrderedQuantity()).append(" requested)\n");
+                    }
+                    theProduct = null;
+                    // for loop that removes items from the trolley
+                    for (Product p : TooManyOrderedProducts) {
+                        trolley.remove(p);
+                    }
+                    // updating the visual trolley
+                    displayTaTrolley = ProductListFormatter.buildString(trolley);
+                    //Printing the error message
+                    ErrorMessage = errorMsg.toString();
+                    removeProductNotifier.showRemovalMsg(ErrorMessage);
+                    return true;
+                }
             }
         }
+        return false;
+
+        //Initial try catch I used
+        /*try{
+            if(!TooManyOrderedProducts.isEmpty()){
+                throw new ExcessiveOrderQuantityException("Excessive order quantity");
+            }
+        } catch (ExcessiveOrderQuantityException e){
+            StringBuilder errorMsg = new StringBuilder();
+            for (Product p : TooManyOrderedProducts) {
+                errorMsg.append("\u2022 " + p.getProductId()).append(", ")
+                        .append(p.getProductDescription()).append("")
+                        .append(p.getOrderedQuantity()).append("requested)")
+                        .append(" Only up to 50 allowed to be ordered\n");
+            }
+            theProduct = null;
+            for (Product p : TooManyOrderedProducts) {
+                trolley.remove(p);
+            }
+
+            displayTaTrolley = ProductListFormatter.buildString(trolley);
+            //Printing the error message
+            ErrorMessage = errorMsg.toString();
+            removeProductNotifier.showRemovalMsg(ErrorMessage);
+            return true;
+        }
+        return false;*/
+
+
     }
 
 

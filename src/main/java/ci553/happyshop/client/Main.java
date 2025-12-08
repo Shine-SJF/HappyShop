@@ -86,6 +86,10 @@ public class Main extends Application {
         MinPayNotifer minPayNotifier = new MinPayNotifer();
         minPayNotifier.cusView = cusView;
         cusModel.minPayNotifier = minPayNotifier;
+
+        QuanitityErrorNotifier quanitityErrorNotifier = new QuanitityErrorNotifier();
+        quanitityErrorNotifier.cusView = cusView;
+        cusModel.quanitityErrorNotifier = quanitityErrorNotifier;
     }
 
     /** The picker GUI, - for staff to pack customer's order,

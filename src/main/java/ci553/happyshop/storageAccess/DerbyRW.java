@@ -197,6 +197,76 @@ public class DerbyRW implements DatabaseRW {
         return insufficientProducts;
     }
 
+    @Override
+    public ArrayList<Product> ReduceStockTo50(ArrayList<Product> proList) throws SQLException {
+        lock.lock();  // Lock the critical section to prevent concurrent access
+        ArrayList<Product> TooManyOrderedProducts = new ArrayList<>();
+
+        String checkSql = "SELECT inStock FROM ProductTable WHERE productId = ?";
+        String updateSql = "UPDATE ProductTable SET inStock = inStock - ? WHERE productId = ?";
+
+        // Use try-with-resources for Connection and PreparedStatements
+        try (Connection conn = DriverManager.getConnection(dbURL)) {
+            conn.setAutoCommit(false); // Turn off auto-commit for transaction
+
+            // Use a second try-with-resources for the PreparedStatements
+            try (PreparedStatement checkStmt = conn.prepareStatement(checkSql);
+                 PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+
+                boolean NotOver50 = true; // Flag to track if all products have sufficient stock
+
+                for (Product product : proList) {
+                    checkStmt.setString(1, product.getProductId());
+                    ResultSet rs = checkStmt.executeQuery();
+
+                    if (rs.next()) {
+                        int currentStock = rs.getInt("inStock");
+                        int newStock = currentStock - product.getOrderedQuantity();
+
+                        // Debugging: Print values before update
+                        System.out.println("Product ID: " + product.getProductId());
+                        System.out.println("Before change: " + currentStock);
+                        System.out.println("Quantity Ordered: " + product.getOrderedQuantity());
+
+                        if (newStock >= 0 && product.getOrderedQuantity() <= 50) { // Ensure stock doesn't go negative and that ordered quantity is less than 50
+                            updateStmt.setInt(1, product.getOrderedQuantity());
+                            updateStmt.setString(2, product.getProductId());
+                            updateStmt.addBatch();
+
+                            // Debugging: Print values after update
+                            System.out.println("After change: " + newStock);
+                            System.out.println("Update successful for Product ID: " + product.getProductId());
+                        } else {
+                            TooManyOrderedProducts.add(product);
+                            NotOver50 = false; // Mark that there's at least one instance of order quantity greater than 50 and/or stock is less than 0
+                            System.out.println("Not enough stock for Product ID: " + product.getProductId());
+                        }
+                        System.out.println("--------------------------------");
+                    }
+                }
+
+                if (!NotOver50) {
+                    // If all products have sufficient stock, execute the batch and commit
+                    updateStmt.executeBatch();
+                    conn.commit();  // Commit all updates if all updates succeed
+                    System.out.println("Database update successful.");
+                } else {
+                    // If there's insufficient stock for any product, rollback the entire transaction
+                    conn.rollback();
+                    System.out.println("Insufficient stock for some products, all updates rolled back.");
+                }
+
+            } catch (SQLException e) {
+                conn.rollback();  // Rollback if anything failed inside
+                System.out.println("Database update error, update failed");
+            }
+        } finally {
+            lock.unlock(); // Always release the lock after the operation
+        }
+
+        return TooManyOrderedProducts;
+    }
+
 
     //warehouse edits an existing product
     public void updateProduct(String id, String des, double price, String iName, int stock) throws SQLException {
@@ -313,10 +383,7 @@ public class DerbyRW implements DatabaseRW {
     }
     //this overide was auto suggested by InteliJ after error came up keep note
 
-    @Override
-    public ArrayList<Product> ReduceStockTo50(ArrayList<Product> proList) throws SQLException {
-        return null;
-    }
+
 
     //   /images/0001TV.jpg
     //warehouse adds a new product to database
