@@ -39,7 +39,7 @@ public class CustomerModel {
     //variables for the error messages for customers
     public RemoveProductNotifier removeProductNotifier;// Text area content showing receipt after checkout (Receipt Page)
     public MinPayNotifer minPayNotifier;
-    public QuanitityErrorNotifier quanitityErrorNotifier;
+    public QuantityErrorNotifier quanitityErrorNotifier;
     private String ErrorMessage = "";
 
 

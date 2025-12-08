@@ -87,7 +87,7 @@ public class Main extends Application {
         minPayNotifier.cusView = cusView;
         cusModel.minPayNotifier = minPayNotifier;
 
-        QuanitityErrorNotifier quanitityErrorNotifier = new QuanitityErrorNotifier();
+        QuantityErrorNotifier quanitityErrorNotifier = new QuantityErrorNotifier();
         quanitityErrorNotifier.cusView = cusView;
         cusModel.quanitityErrorNotifier = quanitityErrorNotifier;
     }

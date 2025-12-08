@@ -48,7 +48,7 @@ public class CustomerClient extends Application {
         minPayNotifer.cusView = cusView;
         cusModel.minPayNotifier = minPayNotifer;
 
-        QuanitityErrorNotifier quanitityErrorNotifier = new QuanitityErrorNotifier();
+        QuantityErrorNotifier quanitityErrorNotifier = new QuantityErrorNotifier();
         quanitityErrorNotifier.cusView = cusView;
         cusModel.quanitityErrorNotifier = quanitityErrorNotifier;
 
