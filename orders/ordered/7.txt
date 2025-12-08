@@ -1,0 +1,11 @@
+Order ID: 7 
+State: Ordered 
+OrderedDateTime: 2025-11-17 13:22:34 
+ProgressingDateTime:  
+CollectedDateTime: 
+Items:
+ 0001    40 inch TV         ( 4) £1076.00
+ 0004    Watch              ( 5) £ 149.95
+--------------------------------------------
+ Total                               £1225.95
+

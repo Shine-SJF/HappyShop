@@ -1,0 +1,9 @@
+Order ID: 39 
+State: Ordered 
+OrderedDateTime: 2025-11-24 17:50:35 
+ProgressingDateTime:  
+CollectedDateTime: 
+Items:
+--------------------------------------------
+ Total                               £   0.00
+

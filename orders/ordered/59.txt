@@ -1,0 +1,10 @@
+Order ID: 59 
+State: Ordered 
+OrderedDateTime: 2025-12-02 18:31:44 
+ProgressingDateTime:  
+CollectedDateTime: 
+Items:
+ 0008    USB2 drive         (51) £ 407.49
+--------------------------------------------
+ Total                               £ 407.49
+

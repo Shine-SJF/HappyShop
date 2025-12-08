@@ -1,0 +1,10 @@
+Order ID: 14 
+State: Ordered 
+OrderedDateTime: 2025-11-18 21:51:05 
+ProgressingDateTime:  
+CollectedDateTime: 
+Items:
+ 0003    Toaster            (52) £1039.48
+--------------------------------------------
+ Total                               £1039.48
+
