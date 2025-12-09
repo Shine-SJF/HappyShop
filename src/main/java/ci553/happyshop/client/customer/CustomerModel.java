@@ -257,7 +257,7 @@ public class CustomerModel {
                     displayTaTrolley = ProductListFormatter.buildString(trolley);
                     //Printing the error message
                     ErrorMessage = errorMsg.toString();
-                    removeProductNotifier.showRemovalMsg(ErrorMessage);
+                    quanitityErrorNotifier.showRemovalMsg(ErrorMessage);
                     return true;
                 }
                 try{
