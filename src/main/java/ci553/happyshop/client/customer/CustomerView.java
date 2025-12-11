@@ -58,7 +58,7 @@ public class CustomerView  {
         // Create a divider line
         Line line = new Line(0, 0, 0, HEIGHT);
         line.setStrokeWidth(4);
-        line.setStroke(Color.PINK);
+        line.setStroke(Color.BLACK);
         VBox lineContainer = new VBox(line);
         lineContainer.setPrefWidth(4); // Give it some space
         lineContainer.setAlignment(Pos.CENTER);
@@ -69,7 +69,7 @@ public class CustomerView  {
 
         Scene scene = new Scene(hbRoot, WIDTH, HEIGHT);
         window.setScene(scene);
-        window.setTitle("🛒 HappyShop Customer Client");
+        window.setTitle("🛒 HappyBar - Customer Page");
         WinPosManager.registerWindow(window,WIDTH,HEIGHT); //calculate position x and y for this window
         window.show();
         viewWindow=window;// Sets viewWindow to this window for future reference and management.
@@ -108,7 +108,7 @@ public class CustomerView  {
         ivProduct.setPreserveRatio(true); // Image keeps its original shape and fits inside 60×60
         ivProduct.setSmooth(true); //make it smooth and nice-looking
 
-        lbProductInfo = new Label("Thank you for shopping with us.");
+        lbProductInfo = new Label("Thank you for ordering, have a nice day.");
         lbProductInfo.setWrapText(true);
         lbProductInfo.setMinHeight(Label.USE_PREF_SIZE);  // Allow auto-resize
         lbProductInfo.setStyle(UIStyle.labelMulLineStyle);
@@ -124,7 +124,7 @@ public class CustomerView  {
     }
 
     private VBox CreateTrolleyPage() {
-        Label laPageTitle = new Label("🛒🛒  Trolley 🛒🛒");
+        Label laPageTitle = new Label("🛒🛒  Food Trolley 🛒🛒");
         laPageTitle.setStyle(UIStyle.labelTitleStyle);
 
         taTrolley = new TextArea();
@@ -175,7 +175,7 @@ public class CustomerView  {
         try{
             Button btn = (Button)event.getSource();
             String action = btn.getText();
-            if(action.equals("Add to Trolley")){
+            if(action.equals("Add to Food Trolley")){
                 showTrolleyOrReceiptPage(vbTrolleyPage); //ensure trolleyPage shows if the last customer did not close their receiptPage
             }
             if(action.equals("OK & Close")){
