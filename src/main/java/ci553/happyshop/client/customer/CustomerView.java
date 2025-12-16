@@ -97,10 +97,15 @@ public class CustomerView  {
         Button btnSearch = new Button("Search");
         btnSearch.setStyle(UIStyle.buttonStyle);
         btnSearch.setOnAction(this::buttonClicked);
+
         Button btnAddToTrolley = new Button("Add to Trolley");
-        btnAddToTrolley.setStyle(UIStyle.buttonStyle);
         btnAddToTrolley.setOnAction(this::buttonClicked);
-        HBox hbBtns = new HBox(10, laPlaceHolder,btnSearch, btnAddToTrolley);
+
+        Button btnAddToWishList = new Button("Add to Wish List");
+        btnAddToWishList.setOnAction(this::buttonClicked);
+        btnAddToWishList.setStyle(UIStyle.buttonStyle);
+
+        HBox hbBtns = new HBox(10, btnSearch, btnAddToTrolley, btnAddToWishList);
 
         ivProduct = new ImageView("imageHolder.jpg");
         ivProduct.setFitHeight(60);
@@ -112,7 +117,11 @@ public class CustomerView  {
         lbProductInfo.setWrapText(true);
         lbProductInfo.setMinHeight(Label.USE_PREF_SIZE);  // Allow auto-resize
         lbProductInfo.setStyle(UIStyle.labelMulLineStyle);
-        HBox hbSearchResult = new HBox(5, ivProduct, lbProductInfo);
+
+        Button btnViewWishList = new Button("View wishlist");
+        btnViewWishList.setOnAction(this::buttonClicked);
+
+        HBox hbSearchResult = new HBox(5, ivProduct, lbProductInfo, btnViewWishList);
         hbSearchResult.setAlignment(Pos.CENTER_LEFT);
 
         VBox vbSearchPage = new VBox(15, laPageTitle, hbId, hbName, hbBtns, hbSearchResult);

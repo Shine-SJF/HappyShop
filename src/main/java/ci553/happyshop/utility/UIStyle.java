@@ -58,7 +58,7 @@ public record UIStyle() {
     public static final String buttonStyle= "-fx-font-size: 15";
 
     public static final String rootStyle = "-fx-padding: 8px; " +
-            "-fx-background-color: lightgreen";
+            "-fx-background-color: lightblue";
 
     public static final String rootStyleBlue = "-fx-padding: 8px; " +
             "-fx-background-color: lightblue";
