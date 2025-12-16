@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Comparator;
 
 /**
  * TODO
@@ -63,14 +64,40 @@ public class CustomerModel {
     }
 
     void addToTrolley(){
-        if(theProduct!= null){
+        if(theProduct != null){
 
             // trolley.add(theProduct) — Product is appended to the end of the trolley.
             // To keep the trolley organized, add code here or call a method that:
             //TODO
             // 1. Merges items with the same product ID (combining their quantities).
             // 2. Sorts the products in the trolley by product ID.
-            trolley.add(theProduct);
+            Product existing = null;
+            for (Product p : trolley) {
+                if (p.getProductId().equals(theProduct.getProductId())) {
+                    existing = p;
+                    break;
+                }
+            }
+
+            if (existing != null) {
+                int currentQty = existing.getOrderedQuantity();
+                if (currentQty < 0) {
+                    currentQty = 0;
+                }
+                existing.setOrderedQuantity(currentQty + 1);
+            } else {
+                Product copy = new Product(
+                        theProduct.getProductId(),
+                        theProduct.getProductDescription(),
+                        theProduct.getProductImageName(),
+                        theProduct.getUnitPrice(),
+                        theProduct.getStockQuantity()
+                );
+                copy.setOrderedQuantity(1);
+                trolley.add(copy);
+            }
+            trolley.sort(Comparator.comparing(Product::getProductId));
+
             displayTaTrolley = ProductListFormatter.buildString(trolley); //build a String for trolley so that we can show it
         }
         else{
@@ -80,6 +107,8 @@ public class CustomerModel {
         displayTaReceipt=""; // Clear receipt to switch back to trolleyPage (receipt shows only when not empty)
         updateView();
     }
+
+
 
     void checkOut() throws IOException, SQLException {
         if(!trolley.isEmpty()){
@@ -184,3 +213,4 @@ public class CustomerModel {
         return trolley;
     }
 }
+

@@ -1,0 +1,10 @@
+Order ID: 10 
+State: Ordered 
+OrderedDateTime: 2025-12-11 20:57:25 
+ProgressingDateTime:  
+CollectedDateTime: 
+Items:
+ 0002    BBQ Spare Ribs     ( 2) £  19.98
+--------------------------------------------
+ Total                               £  19.98
+
