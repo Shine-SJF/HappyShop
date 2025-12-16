@@ -46,16 +46,16 @@ public class Main extends Application {
         startPickerClient();
         startOrderTracker();
 
-        startCustomerClient();
-        startPickerClient();
-        startOrderTracker();
+        //startCustomerClient();
+       // startPickerClient();
+        //startOrderTracker();
 
         // Initializes the order map for the OrderHub. This must be called after starting the observer clients
         // (such as OrderTracker and Picker clients) to ensure they are properly registered for receiving updates.
         initializeOrderMap();
 
         startWarehouseClient();
-        startWarehouseClient();
+        //startWarehouseClient();
 
         startEmergencyExit();
     }
@@ -74,11 +74,17 @@ public class Main extends Application {
         CustomerController cusController = new CustomerController();
         CustomerModel cusModel = new CustomerModel();
         DatabaseRW databaseRW = DatabaseRWFactory.createDatabaseRW();
+        WishListWindow wishListWindow = new WishListWindow();
+
 
         cusView.cusController = cusController;
         cusController.cusModel = cusModel;
         cusModel.cusView = cusView;
         cusModel.databaseRW = databaseRW;
+        cusModel.wishListWindow = wishListWindow;
+        wishListWindow.cusview = cusView;
+        wishListWindow.cusController = cusController;
+
         cusView.start(new Stage());
 
         //RemoveProductNotifier removeProductNotifier = new RemoveProductNotifier();

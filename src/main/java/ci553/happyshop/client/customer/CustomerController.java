@@ -23,6 +23,19 @@ public class CustomerController {
             case "OK & Close":
                 cusModel.closeReceipt();
                 break;
+            case "Add to Wish List":
+                cusModel.addToWishlist();
+                    break;
+            case "View wishlist":
+                cusModel.showWishList();
+                break;
+            case "Move To Trolley":
+                cusModel.moveToTrolleyFromWishList();
+                break;
+            case "Delete":
+                cusModel.deleteFromWishList();
+                break;
+
         }
     }
 

@@ -2,15 +2,20 @@ package ci553.happyshop.client.customer;
 
 import ci553.happyshop.catalogue.Order;
 import ci553.happyshop.catalogue.Product;
+import ci553.happyshop.client.warehouse.WarehouseModel;
 import ci553.happyshop.storageAccess.DatabaseRW;
 import ci553.happyshop.orderManagement.OrderHub;
+import ci553.happyshop.storageAccess.ImageFileManager;
 import ci553.happyshop.utility.StorageLocation;
 import ci553.happyshop.utility.ProductListFormatter;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,8 +30,10 @@ public class CustomerModel {
     public DatabaseRW databaseRW; //Interface type, not specific implementation
                                   //Benefits: Flexibility: Easily change the database implementation.
 
+    public WishListWindow wishListWindow;
     private Product theProduct =null; // product found from search
     private ArrayList<Product> trolley =  new ArrayList<>(); // a list of products in trolley
+    private ArrayList<Product> wishList = new ArrayList<>();
 
     // Four UI elements to be passed to CustomerView for display updates.
     private String imageName = "imageHolder.jpg";                // Image to show in product preview (Search Page)
@@ -79,6 +86,11 @@ public class CustomerModel {
         }
         displayTaReceipt=""; // Clear receipt to switch back to trolleyPage (receipt shows only when not empty)
         updateView();
+    }
+
+    void organisedTrolley()
+    {
+
     }
 
     void checkOut() throws IOException, SQLException {
@@ -160,6 +172,54 @@ public class CustomerModel {
     void closeReceipt(){
         displayTaReceipt="";
     }
+
+    public void addToWishlist()
+    {
+        if (theProduct != null)
+        {
+            wishList.add(theProduct);
+        }
+    }
+
+    void showWishList(){
+        wishListWindow.showWishlist(wishList);
+    }
+
+    void deleteFromWishList(){
+        Product pro = wishListWindow.obrLvProducts.getSelectionModel().getSelectedItem();
+        if (pro != null ) {
+            wishList.remove(pro); //remove the product from wish List
+            wishListWindow.showWishlist(wishList);
+        }
+        else{
+            System.out.println("No product was selected");
+        }
+    }
+
+    void moveToTrolleyFromWishList(){
+        Product pro = wishListWindow.obrLvProducts.getSelectionModel().getSelectedItem();
+        if (pro != null ) {
+            moveToTrolleyFromWishList(pro);
+            wishList.remove(pro); //remove the product from wish List
+            wishListWindow.showWishlist(wishList);
+        }
+        else{
+            System.out.println("No product was selected");
+        }
+
+    }
+
+    void moveToTrolleyFromWishList(Product pro){
+
+            trolley.add(pro);
+            displayTaTrolley = ProductListFormatter.buildString(trolley); //build a String for trolley so that we can show it
+            displayLaSearchResult = "moved to trolley from wish list";
+            System.out.println("moved to trolley  from wish list");
+
+        displayTaReceipt=""; // Clear receipt to switch back to trolleyPage (receipt shows only when not empty)
+        updateView();
+    }
+
 
     void updateView() {
         if(theProduct != null){
