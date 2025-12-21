@@ -34,8 +34,10 @@ public class CustomerView  {
     private final int COLUMN_WIDTH = WIDTH / 2 - 10;
 
     private HBox hbRoot; // Top-level layout manager
+    private VBox vbLoginPage;
     private VBox vbTrolleyPage;  //vbTrolleyPage and vbReceiptPage will swap with each other when need
     private VBox vbReceiptPage;
+    private VBox vbPaymentPage;
 
     TextField tfId; //for user input on the search page. Made accessible so it can be accessed or modified by CustomerModel
     TextField tfName; //for user input on the search page. Made accessible so it can be accessed by CustomerModel
@@ -45,6 +47,7 @@ public class CustomerView  {
     private Label lbProductInfo;//product text info in searchPage
     private TextArea taTrolley; //in trolley Page
     private TextArea taReceipt;//in receipt page
+    private TextArea taPayment;// in payment page
 
     // Holds a reference to this CustomerView window for future access and management
     // (e.g., positioning the removeProductNotifier when needed).
@@ -73,6 +76,13 @@ public class CustomerView  {
         WinPosManager.registerWindow(window,WIDTH,HEIGHT); //calculate position x and y for this window
         window.show();
         viewWindow=window;// Sets viewWindow to this window for future reference and management.
+    }
+
+    private VBox createLoginPage() {
+        Label laPageTitle = new Label("Welcome to HappyShop!");
+
+
+        VBox vbLoginPage = createLoginPage();
     }
 
     private VBox createSearchPage() {
@@ -150,6 +160,7 @@ public class CustomerView  {
         return vbTrolleyPage;
     }
 
+
     private VBox createReceiptPage() {
         Label laPageTitle = new Label("Receipt");
         laPageTitle.setStyle(UIStyle.labelTitleStyle);
@@ -158,16 +169,30 @@ public class CustomerView  {
         taReceipt.setEditable(false);
         taReceipt.setPrefSize(WIDTH/2, HEIGHT-50);
 
-        Button btnCloseReceipt = new Button("OK & Close"); //btn for closing receipt and showing trolley page
-        btnCloseReceipt.setStyle(UIStyle.buttonStyle);
-
+        Button btnCloseReceipt = new Button("OK & Payment"); //btn for closing receipt and showing trolley page
         btnCloseReceipt.setOnAction(this::buttonClicked);
+        btnCloseReceipt.setStyle(UIStyle.buttonStyle);
 
         vbReceiptPage = new VBox(15, laPageTitle, taReceipt, btnCloseReceipt);
         vbReceiptPage.setPrefWidth(COLUMN_WIDTH);
         vbReceiptPage.setAlignment(Pos.TOP_CENTER);
         vbReceiptPage.setStyle(UIStyle.rootStyleYellow);
         return vbReceiptPage;
+    }
+
+    private VBox createPaymentPage() {
+        Label laPageTitle = new Label("Payment");
+        laPageTitle.setStyle(UIStyle.labelTitleStyle);
+
+        taPayment = new TextArea();
+        taPayment.setEditable(false);
+        taPayment.setPrefSize(WIDTH/2, HEIGHT-50);
+
+        Button btnPay
+
+
+
+        return vbPaymentPage;
     }
 
 
@@ -178,8 +203,8 @@ public class CustomerView  {
             if(action.equals("Add to Trolley")){
                 showTrolleyOrReceiptPage(vbTrolleyPage); //ensure trolleyPage shows if the last customer did not close their receiptPage
             }
-            if(action.equals("OK & Close")){
-                showTrolleyOrReceiptPage(vbTrolleyPage);
+            if(action.equals("OK & Payment")){
+                showTrolleyOrReceiptPage(vbPaymentPage);
             }
             cusController.doAction(action);
         }

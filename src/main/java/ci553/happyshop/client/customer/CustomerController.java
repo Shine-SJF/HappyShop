@@ -20,6 +20,9 @@ public class CustomerController {
             case "Check Out":
                 cusModel.checkOut();
                 break;
+            case "Payment":
+                cusModel.payment();
+                break;
             case "OK & Close":
                 cusModel.closeReceipt();
                 break;

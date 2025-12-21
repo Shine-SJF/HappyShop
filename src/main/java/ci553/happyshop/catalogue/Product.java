@@ -63,6 +63,16 @@ public class Product implements Comparable<Product> {
         return productInfo;
     }
 
+    // I used this constructor because it helps with my merging quantities for my sortTrolley and addtoTrolley classes
+    public Product(String id, String des, double aPrice, int orderedQuantity, int stockQuantity) {
+        proId = id;
+        proDescription = des;
+        unitPrice = aPrice;
+        this.orderedQuantity = orderedQuantity;
+        this.stockQuantity = stockQuantity;
+    }
+
+
     /** alternative constructors retained for possible future use.
      *
     public Product(String id, String des, double aPrice, int orderedQuantity, int stockQuantity) {

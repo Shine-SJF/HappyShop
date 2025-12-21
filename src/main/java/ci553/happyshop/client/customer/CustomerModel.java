@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,7 +25,19 @@ public class CustomerModel {
     public CustomerView cusView;
     public DatabaseRW databaseRW; //Interface type, not specific implementation
                                   //Benefits: Flexibility: Easily change the database implementation.
+    public class organizedTrolley implements Comparable<organizedTrolley> {
+        public int productID;
+        public String productName;
 
+        organizedTrolley(int productID, String productName) {
+            this.productID = productID;
+            this.productName = productName;
+        }
+        @Override
+        public int compareTo(organizedTrolley o) {
+            return Integer.compare(this.productID, o.productID);
+        }
+                                  }
     private Product theProduct =null; // product found from search
     private ArrayList<Product> trolley =  new ArrayList<>(); // a list of products in trolley
 
@@ -63,15 +76,17 @@ public class CustomerModel {
     }
 
     void addToTrolley(){
-        if(theProduct!= null){
-
-            // trolley.add(theProduct) — Product is appended to the end of the trolley.
-            // To keep the trolley organized, add code here or call a method that:
-            //TODO
-            // 1. Merges items with the same product ID (combining their quantities).
-            // 2. Sorts the products in the trolley by product ID.
-            trolley.add(theProduct);
-            displayTaTrolley = ProductListFormatter.buildString(trolley); //build a String for trolley so that we can show it
+        if(theProduct!= null) {
+            Product newItem = new Product(
+                    theProduct.getProductId(),
+                    theProduct.getProductDescription(),
+                    theProduct.getUnitPrice(),
+                    1,
+                    theProduct.getStockQuantity()
+            );
+            sortTrolley(); // Sort method for my merging quantities
+            displayTaReceipt = "";
+            displayTaTrolley = ProductListFormatter.buildString(trolley); // build a String for trolley so that we can show it
         }
         else{
             displayLaSearchResult = "Please search for an available product before adding it to the trolley";
@@ -80,6 +95,33 @@ public class CustomerModel {
         displayTaReceipt=""; // Clear receipt to switch back to trolleyPage (receipt shows only when not empty)
         updateView();
     }
+ void sortTrolley() {
+        // If statement to make sure that the trolley can be merge quantities and that the trolley is not empty
+        if (trolley.isEmpty()) {
+            displayTaTrolley = "Trolley is empty";
+        return;
+        }
+        trolley.sort(Comparator.comparing(Product::getProductId)); // It begins by sorting the product by the product ID
+
+     ArrayList<Product> merged = new ArrayList<>(); // It merges any duplicates products together
+
+     for (Product p : trolley){
+         if(merged.isEmpty()) {
+             merged.add(p);
+         }
+         else { // It then uses compares the product ID and merges the quantities
+             Product last = merged.get(merged.size()-1);
+             if (last.getProductId() == p.getProductId()) {
+                 last.setOrderedQuantity(last.getOrderedQuantity() + p.getOrderedQuantity());
+             } else {
+                 merged.add(p);
+             }
+         }
+     }
+     trolley.clear();
+     trolley.addAll(merged); // It the displays the correct merged quantity in the trolley
+     displayTaTrolley = ProductListFormatter.buildString(trolley); // Displays the new quantities
+ }
 
     void checkOut() throws IOException, SQLException {
         if(!trolley.isEmpty()){
@@ -132,6 +174,10 @@ public class CustomerModel {
         updateView();
     }
 
+    void payment() throws IOException, SQLException {
+
+    }
+
     /**
      * Groups products by their productId to optimize database queries and updates.
      * By grouping products, we can check the stock for a given `productId` once, rather than repeatedly
@@ -180,7 +226,7 @@ public class CustomerModel {
      //File.toURI(): Converts a File object (a file on the filesystem) to a URI object
 
     //for test only
-    public ArrayList<Product> getTrolley() {
+    public ArrayList<Product>  getTrolley() {
         return trolley;
     }
 }
