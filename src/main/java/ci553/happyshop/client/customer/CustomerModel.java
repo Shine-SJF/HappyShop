@@ -11,9 +11,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * TODO
@@ -28,6 +26,8 @@ public class CustomerModel {
     private Product theProduct =null; // product found from search
     private ArrayList<Product> trolley =  new ArrayList<>(); // a list of products in trolley
 
+    private ArrayList<Product> productList =  new ArrayList<>();
+
     // Four UI elements to be passed to CustomerView for display updates.
     private String imageName = "imageHolder.jpg";                // Image to show in product preview (Search Page)
     private String displayLaSearchResult = "No Product was searched yet"; // Label showing search result message (Search Page)
@@ -36,30 +36,48 @@ public class CustomerModel {
 
     //SELECT productID, description, image, unitPrice,inStock quantity
     void search() throws SQLException {
-        String productId = cusView.tfId.getText().trim();
-        if(!productId.isEmpty()){
-            theProduct = databaseRW.searchByProductId(productId); //search database
-            if(theProduct != null && theProduct.getStockQuantity()>0){
-                double unitPrice = theProduct.getUnitPrice();
-                String description = theProduct.getProductDescription();
-                int stock = theProduct.getStockQuantity();
+        String keyword = cusView.tfId.getText().trim();
 
-                String baseInfo = String.format("Product_Id: %s\n%s,\nPrice: £%.2f", productId, description, unitPrice);
-                String quantityInfo = stock < 100 ? String.format("\n%d units left.", stock) : "";
-                displayLaSearchResult = baseInfo + quantityInfo;
-                System.out.println(displayLaSearchResult);
+        if(!keyword.isEmpty()) {
+            productList = databaseRW.searchProduct(keyword); //search database for keyword
+            if (!productList.isEmpty()) {
+                theProduct = productList.get(0);
+
+                if (theProduct.getStockQuantity() > 0) {
+                    double unitPrice = theProduct.getUnitPrice();
+                    String description = theProduct.getProductDescription();
+                    int stock = theProduct.getStockQuantity();
+
+                    String baseInfo = String.format("Product_Id: %s\n%s,\nPrice: £%.2f", theProduct.getProductId(), description, unitPrice);
+                    String quantityInfo = stock < 100 ? String.format("\n%d units left.", stock) : "";
+                    displayLaSearchResult = baseInfo + quantityInfo;
+                } else {
+                    theProduct = null;
+                    displayLaSearchResult = "Product found but out of stock!";
+                }
+            } else {
+                theProduct = null;
+                displayLaSearchResult = "Product not found!";
             }
-            else{
-                theProduct=null;
-                displayLaSearchResult = "No Product was found with ID " + productId;
-                System.out.println("No Product was found with ID " + productId);
+        } else{
+            theProduct = null;
+            displayLaSearchResult = "Please type Product ID or Name to search";
             }
-        }else{
-            theProduct=null;
-            displayLaSearchResult = "Please type ProductID";
-            System.out.println("Please type ProductID.");
-        }
         updateView();
+    }
+    public void selectProduct(Product selected){
+        if (selected != null){
+            this.theProduct = selected;
+            double unitPrice = theProduct.getUnitPrice();
+            String description = theProduct.getProductDescription();
+            int stock = theProduct.getStockQuantity();
+
+            String baseInfo = String.format("Product_Id: %s\n%s,\nPrice: £%.2f", theProduct.getProductId(), description, unitPrice);
+            String quantityInfo = stock < 100 ? String.format("\n%d units left.", stock) : "";
+            displayLaSearchResult = baseInfo + quantityInfo;
+
+            updateView();
+        }
     }
 
     void addToTrolley(){
@@ -72,6 +90,8 @@ public class CustomerModel {
             // 2. Sorts the products in the trolley by product ID.
             //trolley.add(theProduct);
             makeOrganisedTrolley();
+            // Sorts by product ID
+            Collections.sort(trolley, Comparator.comparing(Product::getProductId));
             displayTaTrolley = ProductListFormatter.buildString(trolley); //build a String for trolley so that we can show it
         }
         else{
@@ -185,7 +205,7 @@ public class CustomerModel {
         else{
             imageName = "imageHolder.jpg";
         }
-        cusView.update(imageName, displayLaSearchResult, displayTaTrolley,displayTaReceipt);
+        cusView.update(imageName, displayLaSearchResult, displayTaTrolley,displayTaReceipt, productList);
     }
      // extra notes:
      //Path.toUri(): Converts a Path object (a file or a directory path) to a URI object.

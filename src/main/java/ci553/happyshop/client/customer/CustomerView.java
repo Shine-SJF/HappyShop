@@ -3,6 +3,8 @@ package ci553.happyshop.client.customer;
 import ci553.happyshop.utility.UIStyle;
 import ci553.happyshop.utility.WinPosManager;
 import ci553.happyshop.utility.WindowBounds;
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -14,9 +16,12 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.stage.Stage;
+import javafx.collections.ObservableList;
+import ci553.happyshop.catalogue.Product;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 /**
  * The CustomerView is separated into two sections by a line :
@@ -38,8 +43,8 @@ public class CustomerView  {
     private VBox vbReceiptPage;
 
     TextField tfId; //for user input on the search page. Made accessible so it can be accessed or modified by CustomerModel
-    TextField tfName; //for user input on the search page. Made accessible so it can be accessed by CustomerModel
-
+    public ListView<Product> lvProducts;
+    public ObservableList<Product> obrLvProducts;
     //four controllers needs updating when program going on
     private ImageView ivProduct; //image area in searchPage
     private Label lbProductInfo;//product text info in searchPage
@@ -79,22 +84,27 @@ public class CustomerView  {
         Label laPageTitle = new Label("Search by Product ID/Name");
         laPageTitle.setStyle(UIStyle.labelTitleStyle);
 
-        Label laId = new Label("ID:      ");
+        Label laId = new Label("");
         laId.setStyle(UIStyle.labelStyle);
         tfId = new TextField();
-        tfId.setPromptText("eg. 0001");
+        tfId.setPromptText("eg. 0001 or TV");
         tfId.setStyle(UIStyle.textFiledStyle);
         HBox hbId = new HBox(10, laId, tfId);
 
-        Label laName = new Label("Name:");
-        laName.setStyle(UIStyle.labelStyle);
-        tfName = new TextField();
-        tfName.setPromptText("implement it if you want");
-        tfName.setStyle(UIStyle.textFiledStyle);
-        HBox hbName = new HBox(10, laName, tfName);
+        //list view
+        obrLvProducts = FXCollections.observableArrayList();
+        lvProducts = new ListView<>(obrLvProducts);
+        lvProducts.setPrefHeight(150);
+        //listener
+        lvProducts.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                cusController.setSelectedProduct(newVal);
+            }
+        });
+
 
         Label laPlaceHolder = new Label(  " ".repeat(15)); //create left-side spacing so that this HBox aligns with others in the layout.
-        Button btnSearch = new Button("Search");
+        Button btnSearch = new Button("🔍");
         btnSearch.setStyle(UIStyle.buttonStyle);
         btnSearch.setOnAction(this::buttonClicked);
         Button btnAddToTrolley = new Button("Add to Trolley");
@@ -115,7 +125,7 @@ public class CustomerView  {
         HBox hbSearchResult = new HBox(5, ivProduct, lbProductInfo);
         hbSearchResult.setAlignment(Pos.CENTER_LEFT);
 
-        VBox vbSearchPage = new VBox(15, laPageTitle, hbId, hbName, hbBtns, hbSearchResult);
+        VBox vbSearchPage = new VBox(15, laPageTitle, hbId, hbBtns, lvProducts, hbSearchResult);
         vbSearchPage.setPrefWidth(COLUMN_WIDTH);
         vbSearchPage.setAlignment(Pos.TOP_CENTER);
         vbSearchPage.setStyle("-fx-padding: 15px;");
@@ -191,8 +201,15 @@ public class CustomerView  {
     }
 
 
-    public void update(String imageName, String searchResult, String trolley, String receipt) {
-
+    public void update(String imageName, String searchResult, String trolley, String receipt, ArrayList<Product> productList) {
+        Platform.runLater(() -> {
+            if(productList != null){
+                if(!obrLvProducts.equals(productList)){
+                    obrLvProducts.setAll(productList);
+                }
+            } else {
+                obrLvProducts.clear();
+            }});
         ivProduct.setImage(new Image(imageName));
         lbProductInfo.setText(searchResult);
         taTrolley.setText(trolley);
