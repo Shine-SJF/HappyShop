@@ -42,22 +42,22 @@ public class CustomerModel {
 
         theProduct = null;
         //search database
-        if (!productId.isEmpty()){
+        if (!productId.isEmpty()){ //if statement that checks when product ID has an input or not by the user
 
-            theProduct = databaseRW.searchByProductId(productId);
+            theProduct = databaseRW.searchByProductId(productId); // queries the database and searches for the product ID enetered
 
-            if (theProduct != null){
+            if (theProduct != null){ // To see if the product was found or not
 
-                if (theProduct.getStockQuantity() > 0){
-                    double unitPrice = theProduct.getUnitPrice();
-                    String description = theProduct.getProductDescription();
-                    int stock = theProduct.getStockQuantity();
+                if (theProduct.getStockQuantity() > 0){ // To see if the product has a quantity over 0
+                    double unitPrice = theProduct.getUnitPrice(); // gets the price of the product
+                    String description = theProduct.getProductDescription(); // gets the description of the product
+                    int stock = theProduct.getStockQuantity(); // gets the stock level of the product selected
 
                     String baseInfo = String.format(
                             "Product_Id: %s\n%s,\nPrice: £%.2f",
-                            theProduct.getProductId(),
-                            description,
-                            unitPrice
+                            theProduct.getProductId(), // displays the product ID
+                            description, // displays the description of the product
+                            unitPrice // displays the price of the product
                     );
 
                     String quantityInfo =
@@ -66,40 +66,41 @@ public class CustomerModel {
                     displayLaSearchResult = baseInfo + quantityInfo;
 
                 }else{
-                    displayLaSearchResult = "Product is out of stock";
+                    displayLaSearchResult = "Product is out of stock"; // messgae that users see when product is out of stcok
                     theProduct = null;
                 }
 
             }else{
-                displayLaSearchResult = "No product found with ID: " + productId;
+                displayLaSearchResult = "No product found with ID: " + productId; // message that is displayed when an incorrect product ID was searched
             }
         }
 
 
-        else if (!productName.isEmpty()){
+        else if (!productName.isEmpty()){ //checks to see if product Name has an input or not from the user
 
-            ArrayList<Product> resultList = databaseRW.searchProduct(productName);
+            ArrayList<Product> resultList = databaseRW.searchProduct(productName); //queries the database with that product name
 
             if (!resultList.isEmpty()){
 
                 theProduct = resultList.get(0);
 
-                if (theProduct.getStockQuantity() > 0){
-                    double unitPrice = theProduct.getUnitPrice();
-                    String description = theProduct.getProductDescription();
-                    int stock = theProduct.getStockQuantity();
+                if (theProduct.getStockQuantity() > 0){ // To see if the product has a quantity over 0
+                    double unitPrice = theProduct.getUnitPrice(); // gets the price of the product
+                    String description = theProduct.getProductDescription(); // gets the description of the product
+                    int stock = theProduct.getStockQuantity();// gets the stock level of the product selected
 
-                    String baseInfo = String.format(
+
+                    String baseInfo = String.format( // forms a string that will be used in the UI
                             "Product_Id: %s\n%s,\nPrice: £%.2f",
-                            theProduct.getProductId(),
-                            description,
-                            unitPrice
+                            theProduct.getProductId(), // displays the product ID of the product
+                            description, // displays the description of the product
+                            unitPrice // displays the price of the product
                     );
 
                     String quantityInfo =
                             stock < 100 ? String.format("\n%d units left.", stock) : "";
 
-                    displayLaSearchResult = baseInfo + quantityInfo;
+                    displayLaSearchResult = baseInfo + quantityInfo; // displays the strings
 
                 }else{
                     displayLaSearchResult = "Product is out of stock";
@@ -121,20 +122,30 @@ public class CustomerModel {
 
     void addToTrolley(){
         if(theProduct!= null){
+            int qty = cusView.cbQuantity_Levels.getValue(); // retrives the value from the combo box
+            Product productVersion = new Product(theProduct.getProductId(), theProduct.getProductDescription(), theProduct.getProductImageName(), theProduct.getUnitPrice(), theProduct.getStockQuantity()); // A new variable that is used avoids any shared references errors
 
             // trolley.add(theProduct) — Product is appended to the end of the trolley.
             // To keep the trolley organized, add code here or call a method that:
             //TODO
             // 1. Merges items with the same product ID (combining their quantities).
             // 2. Sorts the products in the trolley by product ID.
-            trolley.add(theProduct);
-            displayTaTrolley = ProductListFormatter.buildString(trolley); //build a String for trolley so that we can show it
-        }
-        else{
+            productVersion.setOrderedQuantity(qty); // makes sure that the quantity the user selected matches what is added.
+            trolley.add(productVersion);
+
+
+            ArrayList<Product> combined_trolley = groupProductsById(trolley); // Groups duplicated items into one single line instead of two seperate ones.
+            combined_trolley.sort(Comparator.comparing(Product::getProductId)); // sorts the trolley by ascedning product ID
+            trolley.clear();
+            trolley.addAll(combined_trolley);
+
+            displayTaTrolley = ProductListFormatter.buildString(trolley);
+
+        } else {
             displayLaSearchResult = "Please search for an available product before adding it to the trolley";
-            System.out.println("must search and get an available product before add to trolley");
         }
-        displayTaReceipt=""; // Clear receipt to switch back to trolleyPage (receipt shows only when not empty)
+
+        displayTaReceipt = "";
         updateView();
     }
 
@@ -202,8 +213,10 @@ public class CustomerModel {
                 existing.setOrderedQuantity(existing.getOrderedQuantity() + p.getOrderedQuantity());
             } else {
                 // Make a shallow copy to avoid modifying the original
-                grouped.put(id,new Product(p.getProductId(),p.getProductDescription(),
-                        p.getProductImageName(),p.getUnitPrice(),p.getStockQuantity()));
+                Product Duplicate = new Product(p.getProductId(),p.getProductDescription(), p.getProductImageName(),p.getUnitPrice(),p.getStockQuantity());
+
+                Duplicate.setOrderedQuantity(p.getOrderedQuantity());
+                grouped.put(id, Duplicate);
             }
         }
         return new ArrayList<>(grouped.values());
