@@ -1,5 +1,7 @@
 package ci553.happyshop.client.customer;
 
+import ci553.happyshop.catalogue.Product;
+
 import java.io.IOException;
 import java.sql.SQLException;
 
@@ -8,6 +10,7 @@ public class CustomerController {
 
     public void doAction(String action) throws SQLException, IOException {
         switch (action) {
+            case "🔍":
             case "Search":
                 cusModel.search();
                 break;
@@ -24,6 +27,9 @@ public class CustomerController {
                 cusModel.closeReceipt();
                 break;
         }
+    }
+    public void setSelectedProduct(Product selected){
+        cusModel.selectProduct(selected);
     }
 
 }
