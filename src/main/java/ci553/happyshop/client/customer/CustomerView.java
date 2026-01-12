@@ -45,6 +45,9 @@ public class CustomerView  {
     private Label lbProductInfo;//product text info in searchPage
     private TextArea taTrolley; //in trolley Page
     private TextArea taReceipt;//in receipt page
+    public ComboBox<Integer> cbQuantity_Levels;
+
+
 
     // Holds a reference to this CustomerView window for future access and management
     // (e.g., positioning the removeProductNotifier when needed).
@@ -93,6 +96,17 @@ public class CustomerView  {
         tfName.setStyle(UIStyle.textFiledStyle);
         HBox hbName = new HBox(10, laName, tfName);
 
+        Label Quantity = new Label("Qty");
+        Quantity.setStyle(UIStyle.labelStyle);
+        cbQuantity_Levels = new ComboBox<>();
+        for (int i=1; i<=125; i++){
+            cbQuantity_Levels.getItems().add(i);
+        }
+        cbQuantity_Levels.setValue(1);
+        HBox hbQuantity_box = new HBox(10, Quantity, cbQuantity_Levels);
+        hbQuantity_box.setAlignment(Pos.CENTER_LEFT);
+
+
         Label laPlaceHolder = new Label(  " ".repeat(15)); //create left-side spacing so that this HBox aligns with others in the layout.
         Button btnSearch = new Button("Search");
         btnSearch.setStyle(UIStyle.buttonStyle);
@@ -115,7 +129,7 @@ public class CustomerView  {
         HBox hbSearchResult = new HBox(5, ivProduct, lbProductInfo);
         hbSearchResult.setAlignment(Pos.CENTER_LEFT);
 
-        VBox vbSearchPage = new VBox(15, laPageTitle, hbId, hbName, hbBtns, hbSearchResult);
+        VBox vbSearchPage = new VBox(15, laPageTitle, hbId, hbName, hbQuantity_box, hbBtns, hbSearchResult);
         vbSearchPage.setPrefWidth(COLUMN_WIDTH);
         vbSearchPage.setAlignment(Pos.TOP_CENTER);
         vbSearchPage.setStyle("-fx-padding: 15px;");
