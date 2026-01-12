@@ -193,6 +193,7 @@ public class CustomerModel {
         displayTaReceipt="";
     }
 
+
     void updateView() {
         if(theProduct != null){
             imageName = theProduct.getProductImageName();
@@ -217,5 +218,12 @@ public class CustomerModel {
     }
     public void setTheProduct(Product theProduct) {
         this.theProduct = theProduct;
+    }
+
+    public Product getTheProduct() {
+        return theProduct;
+    }
+    public String getDisplayLaSearchResult() {
+        return displayLaSearchResult;
     }
 }
