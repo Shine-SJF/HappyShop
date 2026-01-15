@@ -65,12 +65,12 @@ public class CustomerModel {
     void addToTrolley(){
         if(theProduct!= null){
 
-            // trolley.add(theProduct) — Product is appended to the end of the trolley.
-            // To keep the trolley organized, add code here or call a method that:
-            //TODO
-            // 1. Merges items with the same product ID (combining their quantities).
-            // 2. Sorts the products in the trolley by product ID.
-            trolley.add(theProduct);
+            //so addToTrolley uses quantity
+            int qty = cusView.getSelectedQuantity();
+            theProduct.setOrderedQuantity(qty);
+
+            // merges and sorts trolley
+            add_or_merge(theProduct);
             displayTaTrolley = ProductListFormatter.buildString(trolley); //build a String for trolley so that we can show it
         }
         else{
@@ -79,6 +79,33 @@ public class CustomerModel {
         }
         displayTaReceipt=""; // Clear receipt to switch back to trolleyPage (receipt shows only when not empty)
         updateView();
+    }
+    private void add_or_merge(Product newProduct) {
+        for (Product p : trolley) {
+            if (p.getProductId().equals(newProduct.getProductId())) {
+                //increases quantity instead of adding duplicate
+                p.setOrderedQuantity(p.getOrderedQuantity() + newProduct.getOrderedQuantity());
+                sortTrolley();
+                return;
+            }
+        }
+        //add new product if no others exist
+        trolley.add(newProduct);
+        sortTrolley();
+    }
+    //for sorting ProductId in Ascending order
+    private void sortTrolley() {
+        trolley.sort((a,b) -> a.getProductId().compareTo(b.getProductId()));
+    }
+
+
+    void deleteSelected() {
+        int index = cusView.getSelectedTrolleyIndex();
+        if (index >= 0 && index < trolley.size()) {
+            trolley.remove(index);
+            displayTaTrolley = ProductListFormatter.buildString(trolley);
+            updateView();
+        }
     }
 
     void checkOut() throws IOException, SQLException {
@@ -144,9 +171,16 @@ public class CustomerModel {
                 Product existing = grouped.get(id);
                 existing.setOrderedQuantity(existing.getOrderedQuantity() + p.getOrderedQuantity());
             } else {
-                // Make a shallow copy to avoid modifying the original
-                grouped.put(id,new Product(p.getProductId(),p.getProductDescription(),
-                        p.getProductImageName(),p.getUnitPrice(),p.getStockQuantity()));
+                Product copy = new Product(
+                        p.getProductId(),
+                        p.getProductDescription(),
+                        p.getProductImageName(),
+                        p.getUnitPrice(),
+                        p.getStockQuantity()
+                );
+                copy.setOrderedQuantity(p.getOrderedQuantity());
+
+                grouped.put(id, copy);
             }
         }
         return new ArrayList<>(grouped.values());
