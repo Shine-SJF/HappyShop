@@ -79,7 +79,7 @@ public class WarehouseModel {
             theSelectedPro = pro;
             productList.remove(theSelectedPro); //remove the product from product List
 
-            //update databse: delete the product from database
+            //update database: delete the product from database
             databaseRW.deleteProduct(theSelectedPro.getProductId());
 
             //delete the image from imageFolder "images/"

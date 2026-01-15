@@ -76,9 +76,7 @@ public class SetOrderFileSystem {
         }
     }
 
-    //create the single orderCounter file and write "0" if it doesn't exist
     private static void createOrderCounterFile(Path path) throws IOException {
-        // Create the file and write "0" if it doesn't exist
         if (Files.notExists(path)) {
             Files.writeString(path, "0", StandardOpenOption.CREATE_NEW);
             System.out.println("order Counter created: 0");
