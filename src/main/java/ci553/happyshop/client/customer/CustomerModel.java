@@ -81,6 +81,26 @@ public class CustomerModel {
         updateView();
     }
 
+    void organizedTrolley() {
+        for (Product p : trolley) {
+            if (p.getProductId().equals(theProduct.getProductId())) {
+                if (p.getOrderedQuantity() < p.getStockQuantity()) {
+                    p.setOrderedQuantity(p.getOrderedQuantity() + theProduct.getOrderedQuantity());
+                } else {
+                    displayLaSearchResult = "Cannot add more items. Only " + p.getStockQuantity() + " units available.";
+                }
+                return;
+            }
+        }
+        if (theProduct.getStockQuantity() > 0) {
+            Product newP = new Product(theProduct.getProductId(), theProduct.getProductDescription(), theProduct.getProductImageName(), theProduct.getUnitPrice(), theProduct.getStockQuantity());
+            newP.setOrderedQuantity(1);
+            trolley.add(newP);
+        } else {
+            displayLaSearchResult = "This product is out of stock";
+        }
+    }
+
     void checkOut() throws IOException, SQLException {
         if(!trolley.isEmpty()){
             // Group the products in the trolley by productId to optimize stock checking
