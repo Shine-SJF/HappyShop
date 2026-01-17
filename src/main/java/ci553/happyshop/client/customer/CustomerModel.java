@@ -27,6 +27,7 @@ public class CustomerModel {
 
     private Product theProduct =null; // product found from search
     private ArrayList<Product> trolley =  new ArrayList<>(); // a list of products in trolley
+    private ArrayList<Product> searchResults = new ArrayList<>();
 
     // Four UI elements to be passed to CustomerView for display updates.
     private String imageName = "imageHolder.jpg";                // Image to show in product preview (Search Page)
@@ -36,48 +37,31 @@ public class CustomerModel {
 
     //SELECT productID, description, image, unitPrice,inStock quantity
     void search() throws SQLException {
-        String productId = cusView.tfId.getText().trim();
-        if(!productId.isEmpty()){
-            theProduct = databaseRW.searchByProductId(productId); //search database
-            if(theProduct != null && theProduct.getStockQuantity()>0){
-                double unitPrice = theProduct.getUnitPrice();
-                String description = theProduct.getProductDescription();
-                int stock = theProduct.getStockQuantity();
+        String keyword = cusView.tfSearchKeyword.getText().trim();
 
-                String baseInfo = String.format("Product_Id: %s\n%s,\nPrice: £%.2f", productId, description, unitPrice);
-                String quantityInfo = stock < 100 ? String.format("\n%d units left.", stock) : "";
-                displayLaSearchResult = baseInfo + quantityInfo;
-                System.out.println(displayLaSearchResult);
-            }
-            else{
-                theProduct=null;
-                displayLaSearchResult = "No Product was found with ID " + productId;
-                System.out.println("No Product was found with ID " + productId);
-            }
-        }else{
-            theProduct=null;
-            displayLaSearchResult = "Please type ProductID";
-            System.out.println("Please type ProductID.");
+        if (keyword.isEmpty()) {
+            cusView.updateObservableProductList(new ArrayList<>());
+            return;
         }
-        updateView();
+
+        searchResults = databaseRW.searchProduct(keyword);
+        cusView.updateObservableProductList(searchResults);
     }
 
-    void addToTrolley(){
-        if(theProduct!= null){
+    void addToTrolley() {
+        Product selected = cusView.getSelectedProduct();
 
-            // trolley.add(theProduct) — Product is appended to the end of the trolley.
-            // To keep the trolley organized, add code here or call a method that:
-            //TODO
-            // 1. Merges items with the same product ID (combining their quantities).
-            // 2. Sorts the products in the trolley by product ID.
-            trolley.add(theProduct);
-            displayTaTrolley = ProductListFormatter.buildString(trolley); //build a String for trolley so that we can show it
+        if (selected == null) {
+            displayTaTrolley = "Please select a product first";
+            updateView();
+            return;
         }
-        else{
-            displayLaSearchResult = "Please search for an available product before adding it to the trolley";
-            System.out.println("must search and get an available product before add to trolley");
-        }
-        displayTaReceipt=""; // Clear receipt to switch back to trolleyPage (receipt shows only when not empty)
+
+        theProduct = selected;
+        organizedTrolley();
+
+        displayTaTrolley = ProductListFormatter.buildString(trolley);
+        displayTaReceipt = "";
         updateView();
     }
 
@@ -182,18 +166,7 @@ public class CustomerModel {
     }
 
     void updateView() {
-        if(theProduct != null){
-            imageName = theProduct.getProductImageName();
-            String relativeImageUrl = StorageLocation.imageFolder +imageName; //relative file path, eg images/0001.jpg
-            // Get the full absolute path to the image
-            Path imageFullPath = Paths.get(relativeImageUrl).toAbsolutePath();
-            imageName = imageFullPath.toUri().toString(); //get the image full Uri then convert to String
-            System.out.println("Image absolute path: " + imageFullPath); // Debugging to ensure path is correct
-        }
-        else{
-            imageName = "imageHolder.jpg";
-        }
-        cusView.update(imageName, displayLaSearchResult, displayTaTrolley,displayTaReceipt);
+        cusView.update(displayLaSearchResult, displayTaTrolley, displayTaReceipt);
     }
      // extra notes:
      //Path.toUri(): Converts a Path object (a file or a directory path) to a URI object.
