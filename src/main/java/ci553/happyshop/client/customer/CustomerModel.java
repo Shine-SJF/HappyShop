@@ -36,31 +36,55 @@ public class CustomerModel {
 
     //SELECT productID, description, image, unitPrice,inStock quantity
     void search() throws SQLException {
-        String productId = cusView.tfId.getText().trim();
-        if(!productId.isEmpty()){
-            theProduct = databaseRW.searchByProductId(productId); //search database
-            if(theProduct != null && theProduct.getStockQuantity()>0){
-                double unitPrice = theProduct.getUnitPrice();
-                String description = theProduct.getProductDescription();
-                int stock = theProduct.getStockQuantity();
 
-                String baseInfo = String.format("Product_Id: %s\n%s,\nPrice: £%.2f", productId, description, unitPrice);
-                String quantityInfo = stock < 100 ? String.format("\n%d units left.", stock) : "";
-                displayLaSearchResult = baseInfo + quantityInfo;
-                System.out.println(displayLaSearchResult);
-            }
-            else{
-                theProduct=null;
-                displayLaSearchResult = "No Product was found with ID " + productId;
-                System.out.println("No Product was found with ID " + productId);
-            }
-        }else{
-            theProduct=null;
-            displayLaSearchResult = "Please type ProductID";
-            System.out.println("Please type ProductID.");
+        String productId = cusView.tfId.getText().trim();
+        String productName = cusView.tfName.getText().trim(); // NAME field
+
+        String keyword = null;
+
+        // Prefer searching by ID first
+        if (!productId.isEmpty()) {
+            keyword = productId;
         }
+        // If ID is empty, search by NAME
+        else if (!productName.isEmpty()) {
+            keyword = productName;
+        }
+        else {
+            theProduct = null;
+            displayLaSearchResult = "Please type Product ID or Product Name";
+            updateView();
+            return;
+        }
+
+        // Use existing database method (ID or NAME)
+        ArrayList<Product> products = databaseRW.searchProduct(keyword);
+
+        if (!products.isEmpty()) {
+            theProduct = products.get(0); // show first matched product
+
+            double unitPrice = theProduct.getUnitPrice();
+            String description = theProduct.getProductDescription();
+            int stock = theProduct.getStockQuantity();
+
+            String baseInfo = String.format(
+                    "Product_Id: %s\n%s,\nPrice: £%.2f",
+                    theProduct.getProductId(),
+                    description,
+                    unitPrice
+            );
+
+            String quantityInfo = stock < 100 ? String.format("\n%d units left.", stock) : "";
+            displayLaSearchResult = baseInfo + quantityInfo;
+        }
+        else {
+            theProduct = null;
+            displayLaSearchResult = "No Product was found for: " + keyword;
+        }
+
         updateView();
     }
+
 
     void addToTrolley(){
         if(theProduct!= null){
