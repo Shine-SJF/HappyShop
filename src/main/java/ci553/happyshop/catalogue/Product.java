@@ -12,6 +12,7 @@ package ci553.happyshop.catalogue;
  */
 
 public class Product implements Comparable<Product> {
+    public String getProductId;
     private String proId;
     private String proDescription;
     private String proImageName;
@@ -62,6 +63,8 @@ public class Product implements Comparable<Product> {
                           proId, unitPrice,stockQuantity,proDescription);
         return productInfo;
     }
+
+
 
     /** alternative constructors retained for possible future use.
      *
