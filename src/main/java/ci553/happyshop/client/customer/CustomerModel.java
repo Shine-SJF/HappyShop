@@ -25,6 +25,28 @@ public class CustomerModel {
     public DatabaseRW databaseRW; //Interface type, not specific implementation
                                   //Benefits: Flexibility: Easily change the database implementation.
 
+    private void organiseTrolley() {
+        // Merge products with same productId by summing orderedQuantity
+        java.util.Map<String, Product> merged = new java.util.LinkedHashMap<>();
+
+        for (Product p : trolley) {
+            String id = p.getProductId();
+
+            if (!merged.containsKey(id)) {
+                merged.put(id, p);
+            } else {
+                Product existing = merged.get(id);
+                existing.setOrderedQuantity(existing.getOrderedQuantity() + p.getOrderedQuantity());
+            }
+        }
+
+        trolley.clear();
+        trolley.addAll(merged.values());
+
+        // Sort by productId (Product.compareTo already does this)
+        java.util.Collections.sort(trolley);
+    }
+
     private Product theProduct =null; // product found from search
     private ArrayList<Product> trolley =  new ArrayList<>(); // a list of products in trolley
 
@@ -68,21 +90,20 @@ public class CustomerModel {
     void addToTrolley(){
         if(theProduct!= null){
 
-            // trolley.add(theProduct) — Product is appended to the end of the trolley.
-            // To keep the trolley organized, add code here or call a method that:
-            //TODO
-            // 1. Merges items with the same product ID (combining their quantities).
-            // 2. Sorts the products in the trolley by product ID.
             trolley.add(theProduct);
-            displayTaTrolley = ProductListFormatter.buildString(trolley); //build a String for trolley so that we can show it
+
+            organiseTrolley(); // ✅ merge + sort
+
+            displayTaTrolley = ProductListFormatter.buildString(trolley);
         }
         else{
             displayLaSearchResult = "Please search for an available product before adding it to the trolley";
             System.out.println("must search and get an available product before add to trolley");
         }
-        displayTaReceipt=""; // Clear receipt to switch back to trolleyPage (receipt shows only when not empty)
+        displayTaReceipt="";
         updateView();
     }
+
 
     void checkOut() throws IOException, SQLException {
         if(!trolley.isEmpty()){
