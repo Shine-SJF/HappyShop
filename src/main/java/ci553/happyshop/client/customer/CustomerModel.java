@@ -15,6 +15,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import ci553.happyshop.discount.DiscountStrategy;
+import ci553.happyshop.discount.NoDiscount;
+
+
 /**
  * TODO
  * You can either directly modify the CustomerModel class to implement the required tasks,
@@ -27,12 +31,15 @@ public class CustomerModel {
 
     private Product theProduct =null; // product found from search
     private ArrayList<Product> trolley =  new ArrayList<>(); // a list of products in trolley
+    private String displayTaReceipt = ""; // Text area content showing receipt after checkout (Receipt Page)
+    private String displayTaSearchResult = "";
+    private DiscountStrategy discountStrategy = new NoDiscount();
 
     // Four UI elements to be passed to CustomerView for display updates.
     private String imageName = "imageHolder.jpg";                // Image to show in product preview (Search Page)
     private String displayLaSearchResult = "No Product was searched yet"; // Label showing search result message (Search Page)
     private String displayTaTrolley = "";                                // Text area content showing current trolley items (Trolley Page)
-    private String displayTaReceipt = "";                                // Text area content showing receipt after checkout (Receipt Page)
+
 
     //SELECT productID, description, image, unitPrice,inStock quantity
     void search() throws SQLException {
@@ -80,6 +87,9 @@ public class CustomerModel {
         displayTaReceipt=""; // Clear receipt to switch back to trolleyPage (receipt shows only when not empty)
         updateView();
     }
+    public void setDiscountStrategy(DiscountStrategy discountStrategy) {
+        this.discountStrategy = discountStrategy;
+    }
 
     void checkOut() throws IOException, SQLException {
         if(!trolley.isEmpty()){
@@ -101,7 +111,10 @@ public class CustomerModel {
                         "Order_ID: %s\nOrdered_Date_Time: %s\n%s",
                         theOrder.getOrderId(),
                         theOrder.getOrderedDateTime(),
-                        ProductListFormatter.buildString(theOrder.getProductList())
+                        ProductListFormatter.buildString(
+                                theOrder.getProductList(),
+                                discountStrategy
+                        )
                 );
                 System.out.println(displayTaReceipt);
             }
@@ -184,3 +197,4 @@ public class CustomerModel {
         return trolley;
     }
 }
+
