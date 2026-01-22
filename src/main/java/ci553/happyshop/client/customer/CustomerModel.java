@@ -51,12 +51,15 @@ public class CustomerModel {
             }
             else{
                 theProduct=null;
-                displayLaSearchResult = "No Product was found with ID " + productId;
+                displayLaSearchResult = String.format(
+                        "No product found for ID: %s",
+                        productId
+                );
                 System.out.println("No Product was found with ID " + productId);
             }
         }else{
             theProduct=null;
-            displayLaSearchResult = "Please type ProductID";
+            displayLaSearchResult = "Please enter a ProductID to search";
             System.out.println("Please type ProductID.");
         }
         updateView();
