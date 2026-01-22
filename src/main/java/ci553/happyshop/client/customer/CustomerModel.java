@@ -81,56 +81,51 @@ public class CustomerModel {
         updateView();
     }
 
-    void checkOut() throws IOException, SQLException {
-        if(!trolley.isEmpty()){
-            // Group the products in the trolley by productId to optimize stock checking
-            // Check the database for sufficient stock for all products in the trolley.
-            // If any products are insufficient, the update will be rolled back.
-            // If all products are sufficient, the database will be updated, and insufficientProducts will be empty.
-            // Note: If the trolley is already organized (merged and sorted), grouping is unnecessary.
-            ArrayList<Product> groupedTrolley= groupProductsById(trolley);
-            ArrayList<Product> insufficientProducts= databaseRW.purchaseStocks(groupedTrolley);
+    void checkOut() {
+        try {
+            if(!trolley.isEmpty()){
+                ArrayList<Product> groupedTrolley= groupProductsById(trolley);
+                ArrayList<Product> insufficientProducts= databaseRW.purchaseStocks(groupedTrolley);
 
-            if(insufficientProducts.isEmpty()){ // If stock is sufficient for all products
-                //get OrderHub and tell it to make a new Order
-                OrderHub orderHub =OrderHub.getOrderHub();
-                Order theOrder = orderHub.newOrder(trolley);
-                trolley.clear();
-                displayTaTrolley ="";
-                displayTaReceipt = String.format(
-                        "Order_ID: %s\nOrdered_Date_Time: %s\n%s",
-                        theOrder.getOrderId(),
-                        theOrder.getOrderedDateTime(),
-                        ProductListFormatter.buildString(theOrder.getProductList())
-                );
-                System.out.println(displayTaReceipt);
-            }
-            else{ // Some products have insufficient stock — build an error message to inform the customer
-                StringBuilder errorMsg = new StringBuilder();
-                for(Product p : insufficientProducts){
-                    errorMsg.append("\u2022 "+ p.getProductId()).append(", ")
-                            .append(p.getProductDescription()).append(" (Only ")
-                            .append(p.getStockQuantity()).append(" available, ")
-                            .append(p.getOrderedQuantity()).append(" requested)\n");
+                if(insufficientProducts.isEmpty()){
+                    OrderHub orderHub = OrderHub.getOrderHub();
+                    Order theOrder = orderHub.newOrder(trolley);
+                    trolley.clear();
+                    displayTaTrolley ="";
+                    displayTaReceipt = String.format(
+                            "Order_ID: %s\nOrdered_Date_Time: %s\n%s",
+                            theOrder.getOrderId(),
+                            theOrder.getOrderedDateTime(),
+                            ProductListFormatter.buildString(theOrder.getProductList())
+                    );
+                    System.out.println(displayTaReceipt);
+                } else {
+                    StringBuilder errorMsg = new StringBuilder();
+                    for(Product p : insufficientProducts){
+                        errorMsg.append("\u2022 ").append(p.getProductId()).append(", ")
+                                .append(p.getProductDescription()).append(" (Only ")
+                                .append(p.getStockQuantity()).append(" available, ")
+                                .append(p.getOrderedQuantity()).append(" requested)\n");
+                    }
+                    theProduct=null;
+
+                    displayLaSearchResult =
+                            "Checkout failed due to insufficient stock for the following products:\n" + errorMsg;
+                    System.out.println("stock is not enough");
                 }
-                theProduct=null;
-
-                //TODO
-                // Add the following logic here:
-                // 1. Remove products with insufficient stock from the trolley.
-                // 2. Trigger a message window to notify the customer about the insufficient stock, rather than directly changing displayLaSearchResult.
-                //You can use the provided RemoveProductNotifier class and its showRemovalMsg method for this purpose.
-                //remember close the message window where appropriate (using method closeNotifierWindow() of RemoveProductNotifier class)
-                displayLaSearchResult = "Checkout failed due to insufficient stock for the following products:\n" + errorMsg.toString();
-                System.out.println("stock is not enough");
+            } else {
+                displayTaTrolley = "Your trolley is empty";
+                System.out.println("Your trolley is empty");
             }
+        } catch (IOException | SQLException e) {
+            // Robustness: never crash the UI, show a friendly message instead
+            displayLaSearchResult = "Checkout failed due to a system error. Please try again.";
+            System.out.println("Checkout error: " + e.getMessage());
+        } finally {
+            updateView();
         }
-        else{
-            displayTaTrolley = "Your trolley is empty";
-            System.out.println("Your trolley is empty");
-        }
-        updateView();
     }
+
 
     /**
      * Groups products by their productId to optimize database queries and updates.
@@ -162,24 +157,28 @@ public class CustomerModel {
     }
 
     void updateView() {
-        if(theProduct != null){
+        if (theProduct != null) {
             imageName = theProduct.getProductImageName();
-            String relativeImageUrl = StorageLocation.imageFolder +imageName; //relative file path, eg images/0001.jpg
-            // Get the full absolute path to the image
+            String relativeImageUrl = StorageLocation.imageFolder + imageName;
             Path imageFullPath = Paths.get(relativeImageUrl).toAbsolutePath();
-            imageName = imageFullPath.toUri().toString(); //get the image full Uri then convert to String
-            System.out.println("Image absolute path: " + imageFullPath); // Debugging to ensure path is correct
-        }
-        else{
+            imageName = imageFullPath.toUri().toString();
+            System.out.println("Image absolute path: " + imageFullPath);
+        } else {
             imageName = "imageHolder.jpg";
         }
-        cusView.update(imageName, displayLaSearchResult, displayTaTrolley,displayTaReceipt);
+        if (cusView != null) {
+            cusView.update(
+                    imageName,
+                    displayLaSearchResult,
+                    displayTaTrolley,
+                    displayTaReceipt
+            );
+        }
     }
-     // extra notes:
+    // extra notes:
      //Path.toUri(): Converts a Path object (a file or a directory path) to a URI object.
      //File.toURI(): Converts a File object (a file on the filesystem) to a URI object
 
-    //for test only
     public ArrayList<Product> getTrolley() {
         return trolley;
     }

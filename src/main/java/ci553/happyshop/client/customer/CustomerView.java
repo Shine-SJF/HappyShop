@@ -18,6 +18,9 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.sql.SQLException;
 
+import javafx.scene.control.ComboBox;
+import javafx.collections.FXCollections;
+
 /**
  * The CustomerView is separated into two sections by a line :
  *
@@ -27,6 +30,11 @@ import java.sql.SQLException;
  */
 
 public class CustomerView  {
+
+    public String getSelectedDiscountType() {
+        return discountCombo.getValue();
+    }
+
     public CustomerController cusController;
 
     private final int WIDTH = UIStyle.customerWinWidth;
@@ -36,6 +44,8 @@ public class CustomerView  {
     private HBox hbRoot; // Top-level layout manager
     private VBox vbTrolleyPage;  //vbTrolleyPage and vbReceiptPage will swap with each other when need
     private VBox vbReceiptPage;
+
+    private ComboBox<String> discountCombo;
 
     TextField tfId; //for user input on the search page. Made accessible so it can be accessed or modified by CustomerModel
     TextField tfName; //for user input on the search page. Made accessible so it can be accessed by CustomerModel
@@ -131,6 +141,21 @@ public class CustomerView  {
         taTrolley.setEditable(false);
         taTrolley.setPrefSize(WIDTH/2, HEIGHT-50);
 
+        Label lbDiscount = new Label("Select discount:");
+        lbDiscount.setStyle(UIStyle.labelStyle);
+
+        discountCombo = new ComboBox<>();
+        discountCombo.setItems(FXCollections.observableArrayList(
+                "No Discount",
+                "Student",
+                "VIP"
+        ));
+        discountCombo.setValue("No Discount"); // default
+        discountCombo.setPrefWidth(200);
+
+        HBox hbDiscount = new HBox(10, lbDiscount, discountCombo);
+        hbDiscount.setAlignment(Pos.CENTER);
+
         Button btnCancel = new Button("Cancel");
         btnCancel.setOnAction(this::buttonClicked);
         btnCancel.setStyle(UIStyle.buttonStyle);
@@ -143,7 +168,13 @@ public class CustomerView  {
         hbBtns.setStyle("-fx-padding: 15px;");
         hbBtns.setAlignment(Pos.CENTER);
 
-        vbTrolleyPage = new VBox(15, laPageTitle, taTrolley, hbBtns);
+        vbTrolleyPage = new VBox(
+                15,
+                laPageTitle,
+                taTrolley,
+                hbDiscount,
+                hbBtns
+        );
         vbTrolleyPage.setPrefWidth(COLUMN_WIDTH);
         vbTrolleyPage.setAlignment(Pos.TOP_CENTER);
         vbTrolleyPage.setStyle("-fx-padding: 15px;");
