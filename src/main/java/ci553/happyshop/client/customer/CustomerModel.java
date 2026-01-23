@@ -20,10 +20,20 @@ import ci553.happyshop.discount.NoDiscount;
 
 
 /**
- * TODO
- * You can either directly modify the CustomerModel class to implement the required tasks,
- * or create a subclass of CustomerModel and override specific methods where appropriate.
+ *CustomerModel contains the customers side of the business logic for HappyShop
+ *
+ * It allows for the following:
+ * - Search for products by ID via the database access layer
+ * - Display the customer trolly contents and maintain it
+ * - update the view within the current UI state
+ * - perform checkout operations including stock operations
+ *
+ * Design:
+ * - Acts as a model in the MVC structure which keeps UI logic seperate from the business logic
+ * - Includes defensive checks which improve robustness and allows for units testing without requiring the UI for assistance
+ * - utilises discountStrategy to apply discounts without modifying the checkout logic
  */
+
 public class CustomerModel {
     public CustomerView cusView;
     public DatabaseRW databaseRW; //Interface type, not specific implementation
