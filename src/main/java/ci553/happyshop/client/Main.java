@@ -1,162 +1,205 @@
 package ci553.happyshop.client;
 
-import ci553.happyshop.client.customer.*;
+import ci553.happyshop.atm.Bank;
+
+import ci553.happyshop.client.customer.CustomerController;
+import ci553.happyshop.client.customer.CustomerModel;
+import ci553.happyshop.client.customer.CustomerView;
 
 import ci553.happyshop.client.emergency.EmergencyExit;
 import ci553.happyshop.client.orderTracker.OrderTracker;
+
 import ci553.happyshop.client.picker.PickerController;
 import ci553.happyshop.client.picker.PickerModel;
 import ci553.happyshop.client.picker.PickerView;
 
-import ci553.happyshop.client.warehouse.*;
+import ci553.happyshop.client.warehouse.AlertSimulator;
+import ci553.happyshop.client.warehouse.HistoryWindow;
+import ci553.happyshop.client.warehouse.WarehouseController;
+import ci553.happyshop.client.warehouse.WarehouseModel;
+import ci553.happyshop.client.warehouse.WarehouseView;
+
 import ci553.happyshop.orderManagement.OrderHub;
+
+import ci553.happyshop.payment.PaymentService;
+import ci553.happyshop.payment.PaymentServiceFactory;
+import ci553.happyshop.payment.PaymentServiceFactory.PaymentType;
+
 import ci553.happyshop.storageAccess.DatabaseRW;
 import ci553.happyshop.storageAccess.DatabaseRWFactory;
-import javafx.application.Application;
-import javafx.stage.Stage;
-import java.io.IOException;
 
-/**
- * The Main JavaFX application class. The Main class is executable directly.
- * It serves as a foundation for UI logic and starts all the clients (UI) in one go.
- *
- * This class launches all standalone clients (Customer, Picker, OrderTracker, Warehouse, EmergencyExit)
- * and links them together into a fully working system.
- *
- * It performs essential setup tasks, such as initializing the order map in the OrderHub
- * and registering observers.
- *
- * Note: Each client type can be instantiated multiple times (e.g., calling startCustomerClient() as many times as needed)
- * to simulate a multi-user environment, where multiple clients of the same type interact with the system concurrently.
- *
- * @version 1.0
- * @author  Shine Shan University of Brighton
- */
+import javafx.application.Application;
+import javafx.scene.control.ChoiceDialog;
+import javafx.stage.Stage;
+
+import java.io.IOException;
 
 public class Main extends Application {
 
+    // ADDED: keep a reference to Main so buttons/controllers can call Main.showWarehouse() etc.
+    private static Main instance;
+
+    // ADDED: keep the primary stage (the one JavaFX gives us)
+    private Stage primaryStage;
+
+    // ADDED: build picker once (hidden) so update() never crashes
+    private Stage pickerStage;
+
+    // ADDED: create shared dependencies once and reuse them
+    private DatabaseRW databaseRW;
+    private PaymentService paymentService;
+
+    // ADDED: keep these so we can show windows later when needed
+    private PickerModel pickerModel;
+    private PickerView pickerView;
+    private OrderTracker orderTracker;
+
+    // ADDED: build warehouse only when needed
+    private WarehouseView warehouseView;
+    private WarehouseModel warehouseModel;
+    private HistoryWindow historyWindow;
+    private AlertSimulator alertSimulator;
+
     public static void main(String[] args) {
-        launch(args); // Launches the JavaFX application and calls the @Override start()
+        launch(args);
     }
 
-    //starts the system
     @Override
     public void start(Stage window) throws IOException {
-        startCustomerClient();
-        startPickerClient();
-        startOrderTracker();
 
-        startCustomerClient();
-        startPickerClient();
-        startOrderTracker();
+        // ADDED: store instance + primary stage so we can navigate later
+        instance = this;
+        primaryStage = window;
 
-        // Initializes the order map for the OrderHub. This must be called after starting the observer clients
-        // (such as OrderTracker and Picker clients) to ensure they are properly registered for receiving updates.
+        // ADDED: make database + payment once at startup (instead of inside each window)
+        databaseRW = DatabaseRWFactory.createDatabaseRW();
+        paymentService = choosePaymentService();
+
+        // CHANGED: register observers first, but DO NOT open their windows yet
+        registerObserversWithoutShowingWindows();
+
+        // (same as yours) Load existing orders after observers are registered
         initializeOrderMap();
 
-        startWarehouseClient();
-        startWarehouseClient();
+        // CHANGED: only start the customer client at launch (use the given stage)
+        startCustomerClient(primaryStage);
 
-        startEmergencyExit();
+        // CHANGED: do NOT start warehouse/emergency here — we will open them via buttons later
+        // startWarehouseClient();
+        // startEmergencyExit();
     }
 
-    /** The customer GUI -search prodduct, add to trolley, cancel/submit trolley, view receipt
-     *
-     * Creates the Model, View, and Controller objects, links them together so they can communicate with each other.
-     * Also creates the DatabaseRW instance via the DatabaseRWFactory and injects it into the CustomerModel.
-     * Starts the customer interface.
-     *
-     * Also creates the RemoveProductNotifier, which tracks the position of the Customer View
-     * and is triggered by the Customer Model when needed.
-     */
-    private void startCustomerClient(){
-        CustomerView cusView = new CustomerView();
-        CustomerController cusController = new CustomerController();
-        CustomerModel cusModel = new CustomerModel();
-        DatabaseRW databaseRW = DatabaseRWFactory.createDatabaseRW();
-
-        cusView.cusController = cusController;
-        cusController.cusModel = cusModel;
-        cusModel.cusView = cusView;
-        cusModel.databaseRW = databaseRW;
-        cusView.start(new Stage());
-
-        //RemoveProductNotifier removeProductNotifier = new RemoveProductNotifier();
-        //removeProductNotifier.cusView = cusView;
-        //cusModel.removeProductNotifier = removeProductNotifier;
+    // ADDED: simple "navigation" methods you can call from buttons in your UI
+    public static void showPicker() {
+        if (instance != null) instance.openPickerWindow();
     }
 
-    /** The picker GUI, - for staff to pack customer's order,
-     *
-     * Creates the Model, View, and Controller objects for the Picker client.
-     * Links them together so they can communicate with each other.
-     * Starts the Picker interface.
-     *
-     * Also registers the PickerModel with the OrderHub to receive order notifications.
-     */
-    private void startPickerClient(){
-        PickerModel pickerModel = new PickerModel();
-        PickerView pickerView = new PickerView();
+    public static void showWarehouse() {
+        if (instance != null) instance.openWarehouseWindow();
+    }
+
+    public static void showEmergencyExit() {
+        if (instance != null) instance.openEmergencyExit();
+    }
+
+    // ADDED: moved payment selection into a helper method so start() stays tidy
+    private PaymentService choosePaymentService() {
+
+        Bank bank = new Bank();
+        bank.addBankAccount(1234, 1111, 500, "current");
+        bank.addBankAccount(9999, 9999, 5000, "current");
+
+        ChoiceDialog<PaymentType> dialog =
+                new ChoiceDialog<>(PaymentType.ATM, PaymentType.values());
+        dialog.setTitle("Payment Method");
+        dialog.setHeaderText("Choose payment method for this session");
+        dialog.setContentText("Payment type:");
+
+        PaymentType paymentType = dialog.showAndWait().orElse(PaymentType.DUMMY);
+
+        return PaymentServiceFactory.createPaymentService(paymentType, bank);
+    }
+
+    // ADDED: register with OrderHub, but don’t open the picker window yet
+    private void registerObserversWithoutShowingWindows() {
+
+        pickerModel = new PickerModel();
+        pickerView = new PickerView();
         PickerController pickerController = new PickerController();
+
         pickerView.pickerController = pickerController;
         pickerController.pickerModel = pickerModel;
         pickerModel.pickerView = pickerView;
-        pickerModel.registerWithOrderHub();
-        pickerView.start(new Stage());
-    }
 
-    //The OrderTracker GUI - for customer to track their order's state(Ordered, Progressing, Collected)
-    //This client is simple and does not follow the MVC pattern, as it only registers with the OrderHub
-    //to receive order status notifications. All logic is handled internally within the OrderTracker.
-    private void startOrderTracker(){
-        OrderTracker orderTracker = new OrderTracker();
+        pickerModel.registerWithOrderHub();
+
+        pickerStage = new Stage();         // ADDED
+        pickerView.start(pickerStage);     // ADDED: builds UI so labels are not null
+        pickerStage.hide();                // ADDED: user still only sees Customer at launch
+
+        orderTracker = new OrderTracker();
         orderTracker.registerWithOrderHub();
     }
 
-    //initialize the orderMap<orderId, orderState> for OrderHub during system startup
-    private void initializeOrderMap(){
-        OrderHub orderHub = OrderHub.getOrderHub();
-        orderHub.initializeOrderMap();
+    private void startCustomerClient(Stage stageToUse) {
+
+        CustomerView cusView = new CustomerView();
+        CustomerController cusController = new CustomerController();
+        CustomerModel cusModel = new CustomerModel();
+
+        // MVC wiring (same as yours)
+        cusView.cusController = cusController;
+        cusController.cusModel = cusModel;
+
+        // CHANGED: use shared database + chosen payment service
+        cusModel.cusView = cusView;
+        cusModel.databaseRW = databaseRW;
+        cusModel.setPaymentService(paymentService);
+
+        // CHANGED: use the primary stage (so only one window shows at launch)
+        cusView.start(stageToUse);
     }
 
-    /** The Warehouse GUI- for warehouse staff to manage stock
-     * Initializes the Warehouse client's Model, View, and Controller,and links them together for communication.
-     * It also creates the DatabaseRW instance via the DatabaseRWFactory and injects it into the Model.
-     * Once the components are linked, the warehouse interface (view) is started.
-     *
-     * Also creates the dependent HistoryWindow and AlertSimulator,
-     * which track the position of the Warehouse window and are triggered by the Model when needed.
-     * These components are linked after launching the Warehouse interface.
-     */
-    private void startWarehouseClient(){
-        WarehouseView view = new WarehouseView();
-        WarehouseController controller = new WarehouseController();
-        WarehouseModel model = new WarehouseModel();
-        DatabaseRW databaseRW = DatabaseRWFactory.createDatabaseRW();
-
-        // Link controller, model, and view and start view
-        view.controller = controller;
-        controller.model = model;
-        model.view = view;
-        model.databaseRW = databaseRW;
-        view.start(new Stage());
-
-        //create dependent views that need window info
-        HistoryWindow historyWindow = new HistoryWindow();
-        AlertSimulator alertSimulator = new AlertSimulator();
-
-        // Link after start
-        model.historyWindow = historyWindow;
-        model.alertSimulator = alertSimulator;
-        historyWindow.warehouseView = view;
-        alertSimulator.warehouseView = view;
+    private void openPickerWindow() {
+        pickerStage.show();      // ADDED: show the already-built window
+        pickerStage.toFront();   // ADDED: bring it to the front
     }
 
-    //starts the EmergencyExit GUI, - used to close the entire application immediatelly
-    private void startEmergencyExit(){
+    // ADDED: open warehouse only when user asks for it (build once, show when needed)
+    private void openWarehouseWindow() {
+
+        if (warehouseView == null) {
+            warehouseView = new WarehouseView();
+            WarehouseController controller = new WarehouseController();
+            warehouseModel = new WarehouseModel();
+
+            warehouseView.controller = controller;
+            controller.model = warehouseModel;
+            warehouseModel.view = warehouseView;
+
+            // ADDED: reuse shared database
+            warehouseModel.databaseRW = databaseRW;
+
+            // ADDED: dependent windows set up once
+            historyWindow = new HistoryWindow();
+            alertSimulator = new AlertSimulator();
+
+            warehouseModel.historyWindow = historyWindow;
+            warehouseModel.alertSimulator = alertSimulator;
+
+            historyWindow.warehouseView = warehouseView;
+            alertSimulator.warehouseView = warehouseView;
+        }
+
+        warehouseView.start(new Stage());
+    }
+
+    // ADDED: emergency exit only appears when user clicks for it
+    private void openEmergencyExit() {
         EmergencyExit.getEmergencyExit();
     }
+
+    private void initializeOrderMap() {
+        OrderHub.getOrderHub().initializeOrderMap();
+    }
 }
-
-
-

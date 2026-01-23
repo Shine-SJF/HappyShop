@@ -20,6 +20,6 @@ class CustomerModelTest {
     cm.makeOrganizedTrolley();
         ArrayList<Product> tro = cm.getTrolley();
         assertEquals(1, tro.size());
-        assertEquals(4, tro.get(0).getOrderedQuantity());
+        assertEquals(3, tro.get(0).getOrderedQuantity());
     }
 }

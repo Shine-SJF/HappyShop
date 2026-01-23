@@ -1,8 +1,10 @@
 module ci553.happyshop {
     requires javafx.controls;
     requires javafx.fxml;
+    requires java.desktop;
     requires java.sql;
     requires javafx.graphics;
+
 
     opens ci553.happyshop to javafx.fxml;
     opens ci553.happyshop.client to javafx.fxml;
@@ -19,5 +21,6 @@ module ci553.happyshop {
     exports ci553.happyshop.client.orderTracker;
     exports ci553.happyshop.client.emergency;
     exports ci553.happyshop.systemSetup;
+
 
 }

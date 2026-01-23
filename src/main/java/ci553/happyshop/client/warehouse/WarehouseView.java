@@ -232,9 +232,15 @@ public class WarehouseView  {
                         ivPro = new ImageView(new Image("imageHolder.jpg",50,45,true,true)); // Directly load from resources
                     }
 
-                    Label laProToString = new Label(product.toString()); // Create a label for product details
-                    HBox hbox = new HBox(10, ivPro, laProToString); // Put ImageView and label in a horizontal layout
-                    setGraphic(hbox);  // Set the whole row content
+                    Label laId = new Label("ID: " + product.getProductId());
+                    Label laDescription = new Label(product.getProductDescription());
+                    Label laPrice = new Label("£" + product.getUnitPrice());
+                    Label laStock = new Label("Stock: " + product.getStockQuantity());
+
+                    HBox hbox = new HBox(10, ivPro, laId, laDescription, laPrice, laStock);
+                    setGraphic(hbox);
+
+
                 }
             }
         });

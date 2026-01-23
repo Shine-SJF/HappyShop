@@ -11,24 +11,31 @@ import javafx.scene.control.TextArea;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * OrderTracker class is for tracking orders and their states.
- * It displays an ordersMap(a list of orders with their associated states) in a TextArea.
- * The ordersMap data is received from the OrderHub.
+ * OrderTracker displays the current order map (orderId -> state).
+ * It receives updates from OrderHub whenever an order is created or changes state.
+ *
+ * This version supports:
+ *  - the original HappyShop observer method (registerOrderTracker)
+ *  - Java's PropertyChangeSupport mechanism (PropertyChangeListener)
+ *
+ * Keeping both makes it easy to extend without breaking the existing system.
  */
+public class OrderTracker implements PropertyChangeListener {
 
-public class OrderTracker {
     private final int WIDTH = UIStyle.trackerWinWidth;
     private final int HEIGHT = UIStyle.trackerWinHeight;
 
-    // TreeMap (orderID,state) holding order IDs and their corresponding states.
+    // Keeps a local copy of the order map for display
     private static final TreeMap<Integer, OrderState> ordersMap = new TreeMap<>();
-    private final TextArea taDisplay; //area to show all orderId and their state on the GUI
 
-     //Constructor initializes the UI, a title Label, and a TextArea for displaying the order details.
+    private final TextArea taDisplay;
+
     public OrderTracker() {
         Label laTitle = new Label("Order_ID,  State");
         laTitle.setStyle(UIStyle.labelTitleStyle);
@@ -37,50 +44,89 @@ public class OrderTracker {
         taDisplay.setEditable(false);
         taDisplay.setStyle(UIStyle.textFiledStyle);
 
-        VBox vbox = new VBox(10,laTitle, taDisplay);
+        VBox vbox = new VBox(10, laTitle, taDisplay);
         vbox.setAlignment(Pos.TOP_CENTER);
-        vbox.setStyle(UIStyle. rootStyleGray);
+        vbox.setStyle(UIStyle.rootStyleGray);
 
         Scene scene = new Scene(vbox, WIDTH, HEIGHT);
         Stage window = new Stage();
         window.setScene(scene);
         window.setTitle("🛒Order Tracker");
 
-        // Registers the window's position with WinPosManager.
-        WinPosManager.registerWindow(window,WIDTH,HEIGHT); //calculate position x and y for this window
+        WinPosManager.registerWindow(window, WIDTH, HEIGHT);
         window.show();
     }
 
     /**
-     * Registers this OrderTracker instance with the OrderHub.
-     * This allows the OrderTracker to receive updates on order state changes.
+     * Registers this OrderTracker with OrderHub.
+     * We register using both approaches:
+     * - the original observer list (existing system behaviour)
+     * - PropertyChangeSupport (extension from lectures)
      */
-    public void registerWithOrderHub(){
+    public void registerWithOrderHub() {
         OrderHub orderHub = OrderHub.getOrderHub();
+
+        // Existing observer mechanism
         orderHub.registerOrderTracker(this);
+
+        // Extension: Java built-in observer mechanism
+        orderHub.addPropertyChangeListener(this);
     }
 
     /**
-     * Sets the order map with new data and refreshes the display.
-     * This method is called by OrderHub when order states are updated.
+     * Existing update method used by the original observer approach.
      */
     public void setOrderMap(TreeMap<Integer, OrderState> om) {
-        ordersMap.clear(); // Clears the current map to replace it with the new data.
-        ordersMap.putAll(om);// Adds all new order data to the map.
-        displayOrderMap();// Updates the display with the new order map.
+        ordersMap.clear();
+        ordersMap.putAll(om);
+        displayOrderMap();
     }
 
-     //Displays the current order map in the TextArea.
-     //Iterates over the ordersMap and formats each order ID and state for display.
+    /**
+     * PropertyChangeListener update method (called automatically when OrderHub fires changes).
+     * We simply reuse the existing setOrderMap(...) method to refresh the UI.
+     */
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        if (!"orderMap".equals(evt.getPropertyName())) {
+            return;
+        }
+
+        @SuppressWarnings("unchecked")
+        TreeMap<Integer, OrderState> updated =
+                (TreeMap<Integer, OrderState>) evt.getNewValue();
+
+        if (updated != null) {
+            setOrderMap(updated);
+        }
+    }
+
     private void displayOrderMap() {
         StringBuilder sb = new StringBuilder();
-        for(Map.Entry<Integer, OrderState> entry : ordersMap.entrySet()) {
+        boolean hasCollected = false;
+
+        for (Map.Entry<Integer, OrderState> entry : ordersMap.entrySet()) {
             int orderId = entry.getKey();
             OrderState orderState = entry.getValue();
-            sb.append(orderId).append(" ".repeat(5)).append(orderState).append("\n");
+
+            if (orderState == OrderState.Collected) {
+                hasCollected = true;
+            }
+
+            sb.append(orderId)
+                    .append(" ".repeat(5))
+                    .append(orderState)
+                    .append("\n");
         }
-        String textDisplay = sb.toString();
-        taDisplay.setText(textDisplay);
+
+        taDisplay.setText(sb.toString());
+
+        // UX effect: turn text green when an order is collected
+        if (hasCollected) {
+            taDisplay.setStyle(UIStyle.textFiledStyle + "; -fx-text-fill: green;");
+        } else {
+            taDisplay.setStyle(UIStyle.textFiledStyle + "; -fx-text-fill: black;");
+        }
     }
 
 }
