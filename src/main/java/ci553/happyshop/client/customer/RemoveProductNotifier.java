@@ -25,9 +25,9 @@ import javafx.stage.Stage;
 
 /**
  * - The scene is created only once to avoid unnecessary recreation of the same layout.
- * - The window is created and shown only when needed. If the window is already open, it will be brought to the front.
- * - The `window` and `scene` are managed separately, allowing the scene to be reused while creating the window as needed.
- * - The window is closed and reset when the "Ok" button is clicked.
+ * - The window is created and shown only when needed. If the window is already open, it will be brought to the front
+ * - The `window` and `scene` are managed separately, allowing the scene to be reused while creating the window as needed
+ * - The window is closed and reset when the "Ok" button is clicked
  * - The window is also closed when Cancel or Check Out(successfully) was clicked even the window is showing
  */
 
@@ -43,7 +43,7 @@ public class RemoveProductNotifier {
 
     // Create the Scene (only once)
     private void createScene() {
-        Label laTitle = new Label("\u26A0 Some changes have been made to your trolley."); // ⚠️
+        Label laTitle = new Label("\u26A0 Some changes have been made to your trolley.");
         laTitle.setStyle(UIStyle.alertTitleLabelStyle);
 
         taRemoveMsg = new TextArea();
@@ -88,22 +88,19 @@ public class RemoveProductNotifier {
         return  actions.toString();
     }
 
-    // Create the window if not exists
-    //also recreate a window if the user closed it with messages in it
+    //Recreates a window if the user closed it with messages in it
     private void createWindow() {
         if (scene == null) {
-            createScene();  //create scene if not exists
+            createScene();
         }
 
         window = new Stage();
-        window.initModality(Modality.NONE); //Optional: explicitly set as non-blocking, though this is the default
+        window.initModality(Modality.NONE);
         window.setTitle("🛒Products removal notifier");
         window.setScene(scene);
 
-        //get bounds of betterCustomer window which trigers the ProductRemovalNotifier
-        // so that we can put the ProductRemovalNotifier at a suitable position
         WindowBounds bounds = cusView.getWindowBounds();
-        window.setX(bounds.x + bounds.width -WIDTH -10); // Position to the right of warehouse window
+        window.setX(bounds.x + bounds.width -WIDTH -10);
         window.setY(bounds.y + bounds.height / 2 + 40);
         window.show();
     }
@@ -121,8 +118,7 @@ public class RemoveProductNotifier {
     /**
      * Closes the ProductRemovalNotifier window.
      * The purpose of this method is to provide a way to close the notifier window from outside this class,
-     * when it is no longer needed (e.g., after canceling or submitting order while the window is still showing
-     * from previous).
+     * when it is no longer needed (e.g., after cancelling or submitting order while the window is still showing.
      */
     public void closeNotifierWindow() {
         if (window != null && window.isShowing()) {

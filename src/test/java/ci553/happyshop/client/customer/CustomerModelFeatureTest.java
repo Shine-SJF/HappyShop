@@ -32,10 +32,10 @@ public class CustomerModelFeatureTest {
     private FakeDatabaseRW db;
     private FakePaymentService payment;
 
-    // JavaFX toolkit setup (needed for TextField/ListView)
+    // JavaFX toolkit setup
     @BeforeAll
     static void startJavaFxToolkit() throws Exception {
-        // JavaFX can only be started once per JVM.
+        // JavaFX can only be started once per JVM
         CountDownLatch latch = new CountDownLatch(1);
         try {
             Platform.startup(latch::countDown);
@@ -97,7 +97,7 @@ public class CustomerModelFeatureTest {
         assertEquals(1, view.productList.size());
         assertEquals("0001", view.productList.get(0).getProductId());
     }
-    // Feature 2: Sorting (trolley is sorted by Product ID even if added out of order)
+    // Feature 2: Sorting
 
     @Test
     void addToTrolley_sortsTrolleyByProductId() throws Exception {
@@ -111,7 +111,7 @@ public class CustomerModelFeatureTest {
         });
         model.addToTrolley();
 
-        // Then add 0001
+        // Then 0001
         runFxAndWait(() -> {
             view.productList.setAll(p1);
             view.lvSearchResults.getSelectionModel().select(0);

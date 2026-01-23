@@ -75,7 +75,6 @@ public class OrderHub {
         return orderHub;
     }
 
-    /* ---------------- PropertyChangeSupport (extension) ---------------- */
 
     public void addPropertyChangeListener(PropertyChangeListener l) {
         pcs.addPropertyChangeListener(l);
@@ -90,8 +89,6 @@ public class OrderHub {
         // Send a copy so listeners don't accidentally modify internal state
         pcs.firePropertyChange("orderMap", null, new TreeMap<>(orderMap));
     }
-
-    /* ---------------- Existing observer logic ---------------- */
 
     public void registerOrderTracker(OrderTracker orderTracker) {
         orderTrackerList.add(orderTracker);
@@ -134,7 +131,6 @@ public class OrderHub {
         return filtered;
     }
 
-    /* ---------------- Core order logic ---------------- */
 
     // Creates a new order and stores it as "Ordered"
     public Order newOrder(ArrayList<Product> trolley)

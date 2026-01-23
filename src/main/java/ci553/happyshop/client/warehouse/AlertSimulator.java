@@ -18,25 +18,6 @@ import javafx.stage.StageStyle;
  * which prevents any further actions from being executed until the alert is dismissed.
  */
 
-/**
- * We simulate the alert window instead of using the built-in Alert to meet three critical requirements:
- * 1. Customizable Appearance and Behavior: The built-in alert lacks flexibility in styling and positioning. By simulating the alert using a custom Stage, we can fully control the visual appearance (like adding emojis, custom text styles, and button positioning) to meet our design specifications.
- * 2. Stage Decoration Control: By using a custom Stage with `StageStyle.UNDECORATED`, we prevent the user from minimizing, resizing, or closing the alert using the standard window controls. This ensures that the alert is always visible and that the user cannot ignore it, forcing them to interact with the alert before proceeding.
- * 3. Emergency Shutdown (ESD): The built-in Alert blocks interaction and doesn't allow for forceful closure or shutdown. Using a custom Stage, we can ensure that the alert can be forcibly closed during ESD.
- * This solution gives us the necessary control over the user interaction flow, visual presentation, and prevents any way of bypassing the error handling process, which isn't possible with the standard Alert class.
-*/
-
-/**
- * This class provides a simple alert simulation window to display error messages.
- *
- * - The scene is created only once to avoid unnecessary recreation of the same layout.
- * - The window is created and shown only when needed. If the window is already open, it will be brought to the front.
- * - The `window` and `scene` are managed separately, allowing the scene to be reused while creating the window as needed.
- * - The window is closed and reset when the "Ok" button is clicked.
- * - The window is also closed when cancel or submit was clicked even the window is showing
- * This design ensures that the alert window is efficient by not recreating the scene multiple times, and the window only exists when necessary.
- */
-
 public class AlertSimulator {
     private static int WIDTH = UIStyle.AlertSimWinWidth;
     private static int HEIGHT = UIStyle.AlertSimWinHeight;
@@ -47,9 +28,9 @@ public class AlertSimulator {
     private  Label laErrorMsg;// Label to display error messages
     private TextArea taErrorMsg;// Label to display error messages
 
-    // Create the Scene (only once)
+    // Creates the Scene
     private  void createScene() {
-        Label laTitle = new Label("\u26A0 Please fix input errors..."); // for emoji ⚠️
+        Label laTitle = new Label("\u26A0 Please fix input errors...");
         laTitle.setStyle(UIStyle.alertTitleLabelStyle); //red
 
         taErrorMsg = new TextArea();
@@ -82,13 +63,10 @@ public class AlertSimulator {
         }
 
         window = new Stage();
-        window.initModality(Modality.NONE); //Optional: explicitly set as non-blocking, though this is the default
-        window.initStyle(StageStyle.UNDECORATED); // No title bar
-        //window.setTitle("\uD83C\uDFEC input error message"); // for icon 🏬
+        window.initModality(Modality.NONE);
+        window.initStyle(StageStyle.UNDECORATED);
         window.setScene(scene);
 
-        //get bounds of warehouse window which trigers the alertSimulator
-        // so that we can put the alertSimulator on top of it and at a suitable position
         WindowBounds bounds = warehouseView.getWindowBounds();
         window.setX(bounds.x + bounds.width-10);
         window.setY(bounds.y + UIStyle.HistoryWinHeight+30);

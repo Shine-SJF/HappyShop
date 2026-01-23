@@ -33,7 +33,7 @@ import java.util.Map;
  */
 public class CustomerModel {
 
-    // Injected references (this is how the project was set up already)
+    // Injected references
     public CustomerView cusView;
     public DatabaseRW databaseRW; // interface type
 
@@ -44,23 +44,23 @@ public class CustomerModel {
     // Payment dependency (injected)
     private PaymentService paymentService;
 
-    // --- Constructors / injection ---
+    // Constructors / injection
 
     // Kept so existing code that does new CustomerModel() still works
     public CustomerModel() {
     }
 
-    // Constructor injection option (nice for testing/clean design)
+    // Constructor injection option
     public CustomerModel(PaymentService paymentService) {
         this.paymentService = paymentService;
     }
 
-    // Setter injection option (works well with the existing Main wiring)
+    // Setter injection option
     public void setPaymentService(PaymentService paymentService) {
         this.paymentService = paymentService;
     }
 
-    // --- UI display fields (passed to CustomerView) ---
+    // UI display fields
     private String imageName = "imageHolder.jpg";
     private String displayLaSearchResult = "No Product was searched yet";
     private String displayTaTrolley = "";
@@ -71,8 +71,6 @@ public class CustomerModel {
                 .mapToDouble(p -> p.getUnitPrice() * p.getOrderedQuantity())
                 .sum();
     }
-
-    // -------------------- Actions called by Controller / View --------------------
 
     void search() throws SQLException {
 
@@ -86,7 +84,7 @@ public class CustomerModel {
             return;
         }
 
-        // Support simple filters like: id:0001, name:milk
+        // Support simple filters like: id:0001, name:tv
         String mode = "any";
         String query = keyword;
 
@@ -96,10 +94,10 @@ public class CustomerModel {
             query = parts[1].trim();
         }
 
-        // Base search from database (we reuse what HappyShop already provides)
+        // Base search from database
         ArrayList<Product> results = databaseRW.searchProduct(query);
 
-        // Extra filtering on top (simple but useful)
+        // Extra filtering on top
         ArrayList<Product> filtered = new ArrayList<>();
 
         for (Product p : results) {
@@ -116,7 +114,7 @@ public class CustomerModel {
                     // stock:out -> only show items with stock == 0
                     if (query.equalsIgnoreCase("out") && p.getStockQuantity() == 0) filtered.add(p);
                 }
-                default -> filtered.add(p); // normal behaviour
+                default -> filtered.add(p);
             }
         }
 
@@ -180,7 +178,6 @@ public class CustomerModel {
         updateView();
     }
 
-    // Kept for compatibility (some earlier tasks might still use it)
     void makeOrganizedTrolley() {
         for (Product p : trolley) {
             if (theProduct != null && p.getProductId().equals(theProduct.getProductId())) {
@@ -196,7 +193,7 @@ public class CustomerModel {
         }
     }
 
-    // -------------------- Item-level trolley controls (extension) --------------------
+    // Item-level trolley controls
 
     // Remove an item completely by product ID
     public void removeItemFromTrolley(String productId) {
@@ -255,7 +252,7 @@ public class CustomerModel {
         updateView();
     }
 
-    // Increase quantity by 1 (simple version)
+    // Increase quantity by 1
     public void increaseItemQuantity(String productId) {
         if (productId == null || productId.trim().isEmpty()) {
             displayLaSearchResult = "Enter a product ID to increase.";
@@ -397,7 +394,7 @@ public class CustomerModel {
         updateView();
     }
 
-    // -------------------- Validation helpers --------------------
+    // Validation helpers
 
     private void validatePayment(double totalPayment) throws UnderMinimumPaymentException {
         if (totalPayment < 5) {

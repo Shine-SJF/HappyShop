@@ -31,13 +31,8 @@ import java.sql.SQLException;
 
 /**
  * The CustomerView is split into two sections by a line:
- * 1) Search Page (always visible)
- * 2) Trolley / Receipt page (this swaps depending on what the user is doing)
- *
- * Small UX effects:
- * - hover + click effects on buttons
- * - a short fade when swapping trolley/receipt
- * - a quick pulse on the trolley box when something changes
+ * 1) Search Page
+ * 2) Trolley / Receipt page
  */
 public class CustomerView {
     public CustomerController cusController;
@@ -196,16 +191,16 @@ public class CustomerView {
                             "Stock left: " + product.getStockQuantity()
                     );
 
-// make the text easier to read
+                    // makes the text easier to read
                     lbTopLine.setStyle("-fx-font-weight: bold;");
                     lbSecondLine.setStyle("-fx-font-size: 12px;");
                     lbThirdLine.setStyle("-fx-font-size: 11px; -fx-text-fill: #444444;");
 
-// stack the text vertically
+                    // stacks the text vertically
                     VBox textBox = new VBox(2, lbTopLine, lbSecondLine, lbThirdLine);
                     textBox.setAlignment(Pos.CENTER_LEFT);
 
-// image + text together
+                    // image + text together
                     HBox row = new HBox(12, ivPro, textBox);
                     row.setAlignment(Pos.CENTER_LEFT);
                     row.setMinHeight(70);

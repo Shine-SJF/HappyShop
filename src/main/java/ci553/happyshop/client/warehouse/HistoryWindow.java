@@ -28,7 +28,7 @@ public class HistoryWindow {
     private  Scene scene;
     private  TextArea taHistory;
 
-    // Create the scene only once (to avoid recreating it multiple times)
+    // Create the scene only once
     private  void createScene() {
         // a TextArea to show stock management history
         taHistory = new TextArea();
@@ -39,7 +39,7 @@ public class HistoryWindow {
         scene = new Scene(vbHistory,WIDTH,HEIGHT);
     }
 
-    // Create the window only when needed (i.e., when the window is not created or closed by user but we need it again)
+    // Create the window only when needed
     private  void createWindow(){
         if (scene == null) {
             createScene(); // create the scene only once
@@ -47,9 +47,9 @@ public class HistoryWindow {
 
         window = new Stage();
         window.setScene(scene);
-        window.setTitle("\uD83C\uDFEC Warehouse Management History"); // for icon 🏬
+        window.setTitle("\uD83C\uDFEC Warehouse Management History");
         window.show();
-        //get the bounds of warehouse window which trigers the history window
+        //get the bounds of warehouse window which triggers the history window
         //so that we can put the history window next to the warehouse window
         WindowBounds bounds = warehouseView.getWindowBounds();
         window.setX(bounds.x + bounds.width - 20);
@@ -58,7 +58,7 @@ public class HistoryWindow {
 
     public  void showManageHistory(ArrayList<String> history){
         if(window ==null ||!window.isShowing() ) {
-            createWindow();  // Only create window if it's not created or unvisible
+            createWindow();  // Only create window if it's not created
         }
         // Create a single string with each item on a new line
         StringBuilder result = new StringBuilder();

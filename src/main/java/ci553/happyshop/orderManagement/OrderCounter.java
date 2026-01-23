@@ -39,7 +39,7 @@ public class OrderCounter {
         try (FileChannel channel = FileChannel.open(path, StandardOpenOption.READ, StandardOpenOption.WRITE);
              FileLock lock = channel.lock()) {
 
-            //creates a ByteBuffer of the same size as the file — so you can read the whole thing.
+            //creates a ByteBuffer of the same size as the file
             ByteBuffer buffer = ByteBuffer.allocate((int) channel.size());
             channel.read(buffer); //Reads the file content into the buffer.
             buffer.flip(); //Prepares the buffer for reading.
@@ -57,7 +57,7 @@ public class OrderCounter {
 
             channel.position(0); // Move to the start of the file
             channel.truncate(0); // Clear all content in the file (file size becomes 0)
-            //This wraps an existing byte array into a buffer — so you can write it with channel.write().
+            //This wraps an existing byte array into a buffer
             channel.write(ByteBuffer.wrap(String.valueOf(newId).getBytes()));
 
             System.out.println("OrderId was generated for now: " + newId);

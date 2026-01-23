@@ -67,29 +67,24 @@ public class Main extends Application {
     @Override
     public void start(Stage window) throws IOException {
 
-        // ADDED: store instance + primary stage so we can navigate later
         instance = this;
         primaryStage = window;
 
-        // ADDED: make database + payment once at startup (instead of inside each window)
+        // make database + payment once at startup
         databaseRW = DatabaseRWFactory.createDatabaseRW();
         paymentService = choosePaymentService();
 
-        // CHANGED: register observers first, but DO NOT open their windows yet
+        // register observers first
         registerObserversWithoutShowingWindows();
 
-        // (same as yours) Load existing orders after observers are registered
+        // Load existing orders after observers are registered
         initializeOrderMap();
 
-        // CHANGED: only start the customer client at launch (use the given stage)
+        // only start the customer client at launch
         startCustomerClient(primaryStage);
-
-        // CHANGED: do NOT start warehouse/emergency here — we will open them via buttons later
-        // startWarehouseClient();
-        // startEmergencyExit();
     }
 
-    // ADDED: simple "navigation" methods you can call from buttons in your UI
+    // simple navigation buttons
     public static void showPicker() {
         if (instance != null) instance.openPickerWindow();
     }
@@ -102,7 +97,7 @@ public class Main extends Application {
         if (instance != null) instance.openEmergencyExit();
     }
 
-    // ADDED: moved payment selection into a helper method so start() stays tidy
+    //moved payment selection into a helper method so start() stays tidy
     private PaymentService choosePaymentService() {
 
         Bank bank = new Bank();
@@ -120,7 +115,6 @@ public class Main extends Application {
         return PaymentServiceFactory.createPaymentService(paymentType, bank);
     }
 
-    // ADDED: register with OrderHub, but don’t open the picker window yet
     private void registerObserversWithoutShowingWindows() {
 
         pickerModel = new PickerModel();
@@ -133,9 +127,9 @@ public class Main extends Application {
 
         pickerModel.registerWithOrderHub();
 
-        pickerStage = new Stage();         // ADDED
-        pickerView.start(pickerStage);     // ADDED: builds UI so labels are not null
-        pickerStage.hide();                // ADDED: user still only sees Customer at launch
+        pickerStage = new Stage();
+        pickerView.start(pickerStage);
+        pickerStage.hide();
 
         orderTracker = new OrderTracker();
         orderTracker.registerWithOrderHub();
@@ -147,25 +141,25 @@ public class Main extends Application {
         CustomerController cusController = new CustomerController();
         CustomerModel cusModel = new CustomerModel();
 
-        // MVC wiring (same as yours)
+        // MVC wiring
         cusView.cusController = cusController;
         cusController.cusModel = cusModel;
 
-        // CHANGED: use shared database + chosen payment service
+        // use shared database + chosen payment service
         cusModel.cusView = cusView;
         cusModel.databaseRW = databaseRW;
         cusModel.setPaymentService(paymentService);
 
-        // CHANGED: use the primary stage (so only one window shows at launch)
+        // use the primary stage
         cusView.start(stageToUse);
     }
 
     private void openPickerWindow() {
-        pickerStage.show();      // ADDED: show the already-built window
-        pickerStage.toFront();   // ADDED: bring it to the front
+        pickerStage.show();      //show the already-built window
+        pickerStage.toFront();   // bring it to the front
     }
 
-    // ADDED: open warehouse only when user asks for it (build once, show when needed)
+    // open warehouse only when user asks for it
     private void openWarehouseWindow() {
 
         if (warehouseView == null) {
@@ -177,10 +171,10 @@ public class Main extends Application {
             controller.model = warehouseModel;
             warehouseModel.view = warehouseView;
 
-            // ADDED: reuse shared database
+            // reuse shared database
             warehouseModel.databaseRW = databaseRW;
 
-            // ADDED: dependent windows set up once
+            // dependent windows set up once
             historyWindow = new HistoryWindow();
             alertSimulator = new AlertSimulator();
 
@@ -194,7 +188,7 @@ public class Main extends Application {
         warehouseView.start(new Stage());
     }
 
-    // ADDED: emergency exit only appears when user clicks for it
+    // emergency exit only appears when user clicks for it
     private void openEmergencyExit() {
         EmergencyExit.getEmergencyExit();
     }

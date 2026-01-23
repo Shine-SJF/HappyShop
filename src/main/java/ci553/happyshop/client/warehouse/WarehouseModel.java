@@ -2,7 +2,6 @@ package ci553.happyshop.client.warehouse;
 
 import ci553.happyshop.catalogue.Product;
 import ci553.happyshop.storageAccess.DatabaseRW;
-import ci553.happyshop.storageAccess.DerbyRW;
 import ci553.happyshop.storageAccess.ImageFileManager;
 import ci553.happyshop.utility.StorageLocation;
 
@@ -79,10 +78,8 @@ public class WarehouseModel {
             theSelectedPro = pro;
             productList.remove(theSelectedPro); //remove the product from product List
 
-            //update databse: delete the product from database
             databaseRW.deleteProduct(theSelectedPro.getProductId());
 
-            //delete the image from imageFolder "images/"
             String imageName = theSelectedPro.getProductImageName(); //eg 0011.jpg;
             ImageFileManager.deleteImageFile(StorageLocation.imageFolder, imageName);
 
@@ -148,9 +145,7 @@ public class WarehouseModel {
             String description = view.taDescriptionEdit.getText().trim();
 
             if(view.isUserSelectedImageEdit == true){  //if the user changed image
-                ImageFileManager.deleteImageFile(StorageLocation.imageFolder, imageName); //delete the old image
-                //copy the user selected image to project image folder
-                //we use productId as image name, but we need to get its extension from the user selected image
+                ImageFileManager.deleteImageFile(StorageLocation.imageFolder, imageName);
                 String newImageNameWithExtension = ImageFileManager.copyFileToDestination(view.userSelectedImageUriEdit, StorageLocation.imageFolder,id);
                 imageName = newImageNameWithExtension;
             }
@@ -161,7 +156,6 @@ public class WarehouseModel {
             else{
                 double price = Double.parseDouble(textPrice);
                 int stock= Integer.parseInt(textStock);
-                //update datbase
                 databaseRW.updateProduct(id,description,price,imageName,stock);
 
                 updateView(UpdateForAction.BtnSummitEdit);
@@ -198,7 +192,6 @@ public class WarehouseModel {
 
     private  boolean validateInputChangeStockBy(String txChangeBy) throws SQLException {
         StringBuilder errorMessage = new StringBuilder();
-        // Validate Stock changBy Quantity (must be an integer)
         try {
             int changeBy = Integer.parseInt(txChangeBy);
         } catch (NumberFormatException e) {
@@ -226,14 +219,10 @@ public class WarehouseModel {
         if (validateInputNewProChild(theNewProId, textPrice, textStock, description, iPath) ==false) {
             updateView(UpdateForAction.ShowInputErrorMsg);
         } else {
-            //copy the user selected image to project image folder and using productId as image name
-            //and get the image extension from the source image, we write this name to database
             String imageNameWithExtension = ImageFileManager.copyFileToDestination(view.imageUriNewPro, StorageLocation.imageFolder,theNewProId);
             double price = Double.parseDouble(textPrice);
             int stock = Integer.parseInt(textStock);
 
-            //insertNewProduct to databse (String id, String des,double price,String image,int stock)
-            //a record in databse looks like ('0001', '40 inch TV', 269.00,'0001TV.jpg',100)"
             databaseRW.insertNewProduct(theNewProId,description,price,imageNameWithExtension,stock);
             updateView(UpdateForAction.BtnSummitNew);
             theNewProId = null;
@@ -245,7 +234,7 @@ public class WarehouseModel {
 
         StringBuilder errorMessage = new StringBuilder();
 
-        // Validate Price (must be a positive number, and two digitals )
+        // Validate Price (must be a positive number, and two digits)
         try {
             double price = Double.parseDouble(txPrice);
 
@@ -267,7 +256,7 @@ public class WarehouseModel {
             errorMessage.append("\u2022 Change stock by not applied.\n");
         }
 
-        // Validate Stock Quantity (must be a non-negative integer)
+        // Validate Stock Quantity
         try {
             int stock = Integer.parseInt(txStock);
             if (stock < 0) {
@@ -301,7 +290,6 @@ public class WarehouseModel {
         if(!databaseRW.isProIdAvailable(id))
             errorMessage.append("\u2022 Product ID " + id + " is not available.\n");
 
-        // Validate Price (must be a positive number, and two digitals )
         try {
             double price = Double.parseDouble(txPrice);
 

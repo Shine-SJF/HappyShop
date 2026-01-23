@@ -14,17 +14,7 @@ import java.util.ArrayList;
  * - Performing stock updates and validations during purchases.
  * - Updating, deleting, or inserting products.
  * - Checking whether a product ID is available before insertion.
- *
- * Why use this interface:
- * Introducing this interface allows for better separation of specification and implementation,
- * making the system more adaptable and maintainable.
- *
- * 1. **Ease of Substitution**: If the application switches to a different database system
- *    (e.g., from Derby to MySQL or SQLite), a new implementation can be provided without affecting other components.
- *
- * 2. **Improved Testability**: During unit testing, mock implementations can simulate database behavior,
- *    enabling effective testing without requiring a live database connection.
- */
+ **/
 
 public interface DatabaseRW {
 
@@ -81,7 +71,7 @@ public interface DatabaseRW {
     void insertNewProduct(String id, String des, double price, String image, int stock) throws SQLException;
 
     /**
-     * Checks whether the given product ID is available for use (i.e., not already in use).
+     * Checks whether the given product ID is available for use
      * @param productId the product ID to check
      * @return true if the ID is available, false if it already exists in the database
      */

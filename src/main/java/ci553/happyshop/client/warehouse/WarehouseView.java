@@ -121,7 +121,6 @@ public class WarehouseView  {
      * eg. when the Cancel or Submit buttons are clicked, to prevent unintended interactions.
      */
 
-    //some elements in vbNewProduct,we need to getValue from them and setValue for them
     TextField tfIdNewPro;
     TextField tfPriceNewPro;
     TextField tfStockNewPro;
@@ -251,12 +250,6 @@ public class WarehouseView  {
         vbSearchPage.setAlignment(Pos.TOP_CENTER);
 
         return vbSearchPage;
-
-        /** NOTE for make image
-         * user selected image at runtime, like with a FileChooser, you cannot use getResource().
-         * getResource() is only for static files already bundled inside app.
-         * User-selected files are real files on the computer, not inside the app resources.
-         */
     }
 
     private VBox createProductFormPage() {

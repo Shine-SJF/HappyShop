@@ -118,7 +118,7 @@ public class PickerModel {
     private void notifyOrderHub() throws IOException {
         orderHub.changeOrderStateMoveFile(theOrderId, theOrderState);
         if (theOrderState == OrderState.Progressing) {
-            // Read order file, ie. order details
+            // Read order file, i.e. order details
             displayTaOrderDetail = orderHub.getOrderDetailForPicker(theOrderId);
         }
     }

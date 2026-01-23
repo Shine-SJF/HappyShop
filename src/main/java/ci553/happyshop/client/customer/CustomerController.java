@@ -16,7 +16,7 @@ public class CustomerController {
 
     public CustomerModel cusModel;
 
-    // --- Item-level trolley controls (extension) ---
+    // Item-level trolley controls
 
     public void removeItemFromTrolley(String productId) {
         cusModel.removeItemFromTrolley(productId);
@@ -30,7 +30,7 @@ public class CustomerController {
         cusModel.increaseItemQuantity(productId);
     }
 
-    // --- Main button actions ---
+    // Main button actions
 
     public void doAction(String action) throws SQLException, IOException {
         switch (action) {

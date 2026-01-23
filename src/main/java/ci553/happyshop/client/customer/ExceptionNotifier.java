@@ -32,7 +32,7 @@ public class ExceptionNotifier {
     private Scene scene;
     private TextArea taExceptionMsg;
 
-    // Create the Scene (only once)
+    // Creates the Scene
     private void createScene(String titleText, String actionText) {
         Label laTitle = new Label(titleText);
         laTitle.setStyle(UIStyle.alertTitleLabelStyle);
@@ -66,7 +66,7 @@ public class ExceptionNotifier {
         scene = new Scene(pane, WIDTH, HEIGHT);
     }
 
-    // Create the window if not exists
+    // Creates the window
     private void createWindow(String titleText, String actionText) {
         if (scene == null) {
             createScene(titleText, actionText);
