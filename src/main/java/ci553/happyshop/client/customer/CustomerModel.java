@@ -182,6 +182,9 @@ public class CustomerModel {
                             .append(p.getOrderedQuantity()).append(" requested)\n");
                 }
                 theProduct=null;
+                for (Product p : insufficientProducts){
+                    trolley.removeIf(t -> t.getProductId().equals(p.getProductId()));
+                }
 
 
                 //TODO
