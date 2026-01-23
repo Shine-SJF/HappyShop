@@ -34,7 +34,9 @@ public class Product implements Comparable<Product> {
         unitPrice = aPrice;
         this.stockQuantity = stockQuantity;
     }
-
+    public void setStockQuantity(int stockQuantity) {
+        this.stockQuantity = stockQuantity;
+    }
     // a set of getter methods
     public String getProductId() { return proId;}
     public String getProductDescription() { return proDescription;}

@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,8 +29,6 @@ public class CustomerModel {
     private Product theProduct =null; // product found from search
     private ArrayList<Product> trolley =  new ArrayList<>(); // a list of products in trolley
 
-    // Four UI elements to be passed to CustomerView for display updates.
-    private String imageName = "imageHolder.jpg";                // Image to show in product preview (Search Page)
     private String displayLaSearchResult = "No Product was searched yet"; // Label showing search result message (Search Page)
     private String displayTaTrolley = "";                                // Text area content showing current trolley items (Trolley Page)
     private String displayTaReceipt = "";                                // Text area content showing receipt after checkout (Receipt Page)
@@ -62,73 +61,122 @@ public class CustomerModel {
         updateView();
     }
 
-    void addToTrolley(){
-        if(theProduct!= null){
-
-            // trolley.add(theProduct) — Product is appended to the end of the trolley.
-            // To keep the trolley organized, add code here or call a method that:
-            //TODO
-            // 1. Merges items with the same product ID (combining their quantities).
-            // 2. Sorts the products in the trolley by product ID.
-            trolley.add(theProduct);
-            displayTaTrolley = ProductListFormatter.buildString(trolley); //build a String for trolley so that we can show it
-        }
-        else{
+    void addToTrolley() {
+        if (theProduct == null) {
             displayLaSearchResult = "Please search for an available product before adding it to the trolley";
-            System.out.println("must search and get an available product before add to trolley");
+            System.out.println("Must search and get an available product before adding to trolley");
+            updateView();
+            return;
         }
-        displayTaReceipt=""; // Clear receipt to switch back to trolleyPage (receipt shows only when not empty)
+        // Determine remaining stock
+        int stockLeft = theProduct.getStockQuantity() - getOrderedQuantityInTrolley(theProduct.getProductId());
+        if (stockLeft <= 0) {
+            displayLaSearchResult = "Cannot add more, product is out of stock!";
+            System.out.println("Cannot add more, product is out of stock!");
+            updateView();
+            return;
+        }
+        boolean merged = false;
+        for (Product p : trolley) {
+            if (p.getProductId().equals(theProduct.getProductId())) {
+                p.setOrderedQuantity(p.getOrderedQuantity() + 1); //Add ONE unit only
+                merged = true;
+                break;
+            }
+        }
+        if (!merged) {
+            // Add a new product to trolley
+            Product copy = new Product(
+                    theProduct.getProductId(),
+                    theProduct.getProductDescription(),
+                    theProduct.getProductImageName(),
+                    theProduct.getUnitPrice(),
+                    theProduct.getStockQuantity()
+            );
+            copy.setOrderedQuantity(1);
+            trolley.add(copy);
+        }
+        // Sort trolley by product ID
+        trolley.sort(Comparator.comparing(Product::getProductId));
+        // Update display
+        displayTaTrolley = ProductListFormatter.buildString(trolley);
+        displayTaReceipt = "";
         updateView();
     }
 
+    /**
+     * Helper method to calculate how many units of a product are already in the trolley
+     */
+    private int getOrderedQuantityInTrolley(String productId) {
+        for (Product p : trolley) {
+            if (p.getProductId().equals(productId)) {
+                return p.getOrderedQuantity();
+            }
+        }
+        return 0;
+    }
+
     void checkOut() throws IOException, SQLException {
-        if(!trolley.isEmpty()){
-            // Group the products in the trolley by productId to optimize stock checking
-            // Check the database for sufficient stock for all products in the trolley.
-            // If any products are insufficient, the update will be rolled back.
-            // If all products are sufficient, the database will be updated, and insufficientProducts will be empty.
-            // Note: If the trolley is already organized (merged and sorted), grouping is unnecessary.
-            ArrayList<Product> groupedTrolley= groupProductsById(trolley);
-            ArrayList<Product> insufficientProducts= databaseRW.purchaseStocks(groupedTrolley);
 
-            if(insufficientProducts.isEmpty()){ // If stock is sufficient for all products
-                //get OrderHub and tell it to make a new Order
-                OrderHub orderHub =OrderHub.getOrderHub();
-                Order theOrder = orderHub.newOrder(trolley);
-                trolley.clear();
-                displayTaTrolley ="";
-                displayTaReceipt = String.format(
-                        "Order_ID: %s\nOrdered_Date_Time: %s\n%s",
-                        theOrder.getOrderId(),
-                        theOrder.getOrderedDateTime(),
-                        ProductListFormatter.buildString(theOrder.getProductList())
-                );
-                System.out.println(displayTaReceipt);
-            }
-            else{ // Some products have insufficient stock — build an error message to inform the customer
-                StringBuilder errorMsg = new StringBuilder();
-                for(Product p : insufficientProducts){
-                    errorMsg.append("\u2022 "+ p.getProductId()).append(", ")
-                            .append(p.getProductDescription()).append(" (Only ")
-                            .append(p.getStockQuantity()).append(" available, ")
-                            .append(p.getOrderedQuantity()).append(" requested)\n");
-                }
-                theProduct=null;
-
-                //TODO
-                // Add the following logic here:
-                // 1. Remove products with insufficient stock from the trolley.
-                // 2. Trigger a message window to notify the customer about the insufficient stock, rather than directly changing displayLaSearchResult.
-                //You can use the provided RemoveProductNotifier class and its showRemovalMsg method for this purpose.
-                //remember close the message window where appropriate (using method closeNotifierWindow() of RemoveProductNotifier class)
-                displayLaSearchResult = "Checkout failed due to insufficient stock for the following products:\n" + errorMsg.toString();
-                System.out.println("stock is not enough");
-            }
-        }
-        else{
+        if (trolley.isEmpty()) {
             displayTaTrolley = "Your trolley is empty";
-            System.out.println("Your trolley is empty");
+            updateView();
+            return;
         }
+
+        // Group products to optimise stock checking
+        ArrayList<Product> groupedTrolley = groupProductsById(trolley);
+
+        // Attempt to purchase stock
+        ArrayList<Product> insufficientProducts =
+                databaseRW.purchaseStocks(groupedTrolley);
+
+        //1: All stock sufficient
+        if (insufficientProducts.isEmpty()) {
+
+            OrderHub orderHub = OrderHub.getOrderHub();
+            Order order = orderHub.newOrder(trolley);
+
+            trolley.clear();
+            displayTaTrolley = "";
+
+            displayTaReceipt = String.format(
+                    "Order_ID: %s\nOrdered_Date_Time: %s\n%s",
+                    order.getOrderId(),
+                    order.getOrderedDateTime(),
+                    ProductListFormatter.buildString(order.getProductList())
+            );
+
+            updateView();
+            return;
+        }
+        //2: Insufficient stock
+        StringBuilder msg = new StringBuilder(
+                "The following products were removed due to insufficient stock:\n\n"
+        );
+        for (Product p : insufficientProducts) {
+            msg.append("• ")
+                    .append(p.getProductId()).append(", ")
+                    .append(p.getProductDescription())
+                    .append(" (Only ")
+                    .append(p.getStockQuantity()).append(" available, ")
+                    .append(p.getOrderedQuantity()).append(" requested)\n");
+        }
+        // Remove insufficient products from trolley
+        trolley.removeIf(tp ->
+                insufficientProducts.stream().anyMatch(ip ->
+                        ip.getProductId().equals(tp.getProductId()))
+        );
+        // Show popup notification
+        RemoveProductNotifier notifier = new RemoveProductNotifier();
+        notifier.showRemovalMsg(msg.toString());
+        notifier.closeNotifierWindow();
+
+        // Refresh trolley display
+        displayTaTrolley = ProductListFormatter.buildString(trolley);
+        displayTaReceipt = "";
+        theProduct = null;
+
         updateView();
     }
 
@@ -162,9 +210,12 @@ public class CustomerModel {
     }
 
     void updateView() {
+        // Four UI elements to be passed to CustomerView for display updates.
+        // Image to show in product preview (Search Page)
+        String imageName;
         if(theProduct != null){
             imageName = theProduct.getProductImageName();
-            String relativeImageUrl = StorageLocation.imageFolder +imageName; //relative file path, eg images/0001.jpg
+            String relativeImageUrl = StorageLocation.imageFolder + imageName; //relative file path, eg images/0001.jpg
             // Get the full absolute path to the image
             Path imageFullPath = Paths.get(relativeImageUrl).toAbsolutePath();
             imageName = imageFullPath.toUri().toString(); //get the image full Uri then convert to String
