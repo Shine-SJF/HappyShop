@@ -7,9 +7,10 @@ import ci553.happyshop.client.orderTracker.OrderTracker;
 import ci553.happyshop.client.picker.PickerController;
 import ci553.happyshop.client.picker.PickerModel;
 import ci553.happyshop.client.picker.PickerView;
-
+import ci553.happyshop.login.Hash;
 import ci553.happyshop.client.warehouse.*;
 import ci553.happyshop.login.LoadLogin;
+import ci553.happyshop.login.SetDefaultUsers;
 import ci553.happyshop.orderManagement.OrderHub;
 import ci553.happyshop.storageAccess.DatabaseRW;
 import ci553.happyshop.storageAccess.DatabaseRWFactory;
@@ -43,6 +44,8 @@ public class Main extends Application {
     //starts the system
     @Override
     public void start(Stage window) throws IOException {
+        System.out.println(SetDefaultUsers.initializeDefaultUsers());
+        Hash.hashPassword("testPassword");
         //startCustomerClient();
         //startPickerClient();
         //startOrderTracker();
