@@ -65,7 +65,8 @@ public class CustomerView  {
 
         hbRoot = new HBox(10, vbSearchPage, lineContainer, vbTrolleyPage); //initialize to show trolleyPage
         hbRoot.setAlignment(Pos.CENTER);
-        hbRoot.setStyle(UIStyle.rootStyle);
+        hbRoot.setStyle(UIStyle.rootStyleForRole("customer")); //sets background style for customer role
+
 
         Scene scene = new Scene(hbRoot, WIDTH, HEIGHT);
         window.setScene(scene);
@@ -215,4 +216,7 @@ public class CustomerView  {
         return new WindowBounds(viewWindow.getX(), viewWindow.getY(),
                   viewWindow.getWidth(), viewWindow.getHeight());
     }
+
+
+    
 }

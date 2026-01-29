@@ -2,7 +2,7 @@ module ci553.happyshop {
     requires javafx.controls;
     requires javafx.fxml;
     requires java.sql;
-    requires javafx.graphics;
+    requires transitive javafx.graphics; //required to share LoadLogin stage with Launcher
 
     opens ci553.happyshop to javafx.fxml;
     opens ci553.happyshop.client to javafx.fxml;
