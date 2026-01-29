@@ -21,7 +21,7 @@ public class Main extends Application {
     }    
 @Override
 public void start(Stage window) throws IOException { //starts login
-
+    
     DecideClient launcher = new DecideClient();
     launcher.initializeOrderMap();
     System.out.println(SetDefaultUsers.initializeDefaultUsers());
@@ -45,6 +45,7 @@ public void start(Stage window) throws IOException { //starts login
     });
 
     login.start(new Stage());
+    
     }
 }
 

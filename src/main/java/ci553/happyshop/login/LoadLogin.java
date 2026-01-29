@@ -16,15 +16,12 @@ import javafx.scene.shape.Polygon;
 import javafx.scene.paint.Color;
 import javafx.scene.layout.BorderPane;
 
-
 /**
  *JavaFX based UI for role selection, logging in, and 2FA
  *checks for entered details are made by LogInAuthenticator
  *verifies 2FA codes using TwoFA class, and uses CurrentUser.
  *Once full login succeeds, it notifies the main using a callback method
  */
-
-
 
 public class LoadLogin extends Application {
     private final LogInAuthenticator authenticator = new LogInAuthenticator();
@@ -86,7 +83,6 @@ public class LoadLogin extends Application {
         showLoginScreen(primaryStage, "Warehouse");
         });
 
-
         Button adminButton = new Button("Admin");
         adminButton.setStyle(UIStyle.buttonStyle);
         adminButton.setOnAction(event -> {
@@ -95,6 +91,7 @@ public class LoadLogin extends Application {
         });
 
         VBox roleSelectionLayout = new VBox(15, selectRoleLabel, customerButton, PickerButton, warehouseButton, adminButton);
+        
         roleSelectionLayout.setAlignment(Pos.CENTER);
         roleSelectionLayout.setStyle(UIStyle.rootStyleBlue); 
         selectRoleLabel.setStyle(UIStyle.labelTitleStyle);
@@ -141,7 +138,7 @@ public class LoadLogin extends Application {
 
         Label titleLabel = new Label("Login as " + role);
         titleLabel.setStyle(UIStyle.labelTitleStyle);
-        
+    
         Label usernameLabel = new Label("Username:");
         usernameLabel.setStyle(UIStyle.labelStyle);
         TextField usernameText = new TextField();
@@ -191,14 +188,12 @@ public class LoadLogin extends Application {
             if (loginCallback != null) loginCallback.onLoginFailure();
             return;
         }
-
         boolean passwordOk = authenticator.authenticate(enteredUsername, password, role, null);
         if (!passwordOk) {
             System.out.println("login failed for role: " + role);
             if (loginCallback != null) loginCallback.onLoginFailure();
             return;
         }
-
         boolean needs2FA = authenticator.requires2FA(role);
 
         UserRoles roleEnum;
@@ -209,38 +204,30 @@ public class LoadLogin extends Application {
             case "customer" -> roleEnum = UserRoles.CUSTOMER;
             default -> throw new IllegalArgumentException("Unknown role: " + role);
         }
-
         UserAccount account = new UserAccount(enteredUsername, roleEnum, needs2FA, null);
         currentUser.startSession(account);
 
         if (!needs2FA) {
             System.out.println("login successful (no 2FA required)");
             if (loginCallback != null) {loginCallback.onLoginSuccess(account.getUsername(),account.getRole().toString(),true,false,primaryStage,null);}
-
-
             primaryStage.close();
             return;
             }
-
             System.out.println("login successful (2FA required)");
-
             String code = twoFAService.generateAndWrite(account.getUsername(), account.getRole().toString());
-
             Stage twoFAStage = new Stage();
             startTwoFA(twoFAStage, account.getUsername(), account.getRole().toString(), code);
+            
             twoFAStage.show();
-
+            
             primaryStage.close();
 
         });
 
         VBox loginLayout = new VBox(15,titleLabel, usernameLabel, usernameText, passwordLabel, passwordField, passwordTextField, showPasswordCheckBox, loginButton);
-
         loginLayout.setAlignment(Pos.CENTER);
         loginLayout.setStyle("-fx-padding: 20px;");
-
         mainLayout.setCenter(loginLayout);
-
         Scene loginScene = new Scene(mainLayout, UIStyle.customerWinWidth, UIStyle.customerWinHeight * 1.5);
         primaryStage.setScene(loginScene);
         primaryStage.setTitle("login - " + role);
@@ -248,10 +235,9 @@ public class LoadLogin extends Application {
         return loginLayout;
     }
 
-
     public Scene startTwoFA(Stage stage, String username, String role, String code) {
     
-        // Back button
+        //back button
         Polygon backArrow = new Polygon();
         backArrow.getPoints().addAll(
                 0.0, 10.0,
@@ -304,13 +290,12 @@ public class LoadLogin extends Application {
             }
             stage.close();
         } else {
-            System.out.println("2FA verification failed!"); //bookmark stop from entering characters
+            System.out.println("2FA verification failed!"); 
             if (loginCallback != null) {
                 loginCallback.onLoginSuccess(username, role, false, true, stage, enteredCode);
             }
         }
         });
-
         VBox twoFALayout = new VBox(15, titleLabel, usernameLabel, roleLabel, twoFALabel, twoFAPasswordField, submitButton);
         twoFALayout.setAlignment(Pos.CENTER);
         twoFALayout.setStyle("-fx-padding: 20px;");

@@ -26,14 +26,13 @@ public class DecideClient {
     }
 
     public void launchForRole(String role) {
-        // Always start these baseline clients if that’s your design
         startCustomerClient();
         startOrderTracker();
         startEmergencyExit();
 
         switch (role.toLowerCase()) {
             case "customer" -> {
-                // customer only: nothing extra
+                //customer only
             }
             case "picker" -> startPickerClient();
             case "warehouse" -> startWarehouseClient();
@@ -67,9 +66,6 @@ public class DecideClient {
 
         cusView.start(new Stage());
 
-        //RemoveProductNotifier removeProductNotifier = new RemoveProductNotifier();
-        //removeProductNotifier.cusView = cusView;
-        //cusModel.removeProductNotifier = removeProductNotifier;
     }
     /** The picker GUI, - for staff to pack customer's order,
      *
@@ -112,7 +108,7 @@ public class DecideClient {
         WarehouseController controller = new WarehouseController();
         WarehouseModel model = new WarehouseModel();
         DatabaseRW databaseRW = DatabaseRWFactory.createDatabaseRW();
-        // Link controller, model, and view and start view
+        //link controller, model, and view and start view
         view.controller = controller;
         controller.model = model;
         model.view = view;
@@ -122,7 +118,7 @@ public class DecideClient {
         //create dependent views that need window info
         HistoryWindow historyWindow = new HistoryWindow();
         AlertSimulator alertSimulator = new AlertSimulator();
-        // Link after start
+        //link after start
         model.historyWindow = historyWindow;
         model.alertSimulator = alertSimulator;
         historyWindow.warehouseView = view;

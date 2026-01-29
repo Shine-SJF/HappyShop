@@ -149,13 +149,13 @@ public final class UIStyle {
 
     switch (role.toLowerCase()) {
         case "customer":
-            return rootStyle;          // lightgreen (matches CustomerView currently)
+            return rootStyle;         
         case "picker":
-            return rootStyleBlue;      // choose any you want
+            return rootStyleBlue;      
         case "warehouse":
-            return rootStyleWarehouse; // lightpink (you already have this)
+            return rootStyleWarehouse; 
         case "admin":
-            return rootStyleGray;      // choose any you want
+            return rootStyleGray;      
         default:
             return rootStyleGray;
     }
