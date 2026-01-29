@@ -6,27 +6,25 @@ package ci553.happyshop.login;
  *proof of centext for hashing passwords for  storage 
  */
 
+
+
 public class Hash { //hashes passwords using a simple hashing algorithm as proof of concept
-    public static String hashPassword(String password) {
-        StringBuilder hashed = new StringBuilder();
+    public static String hashPassword(String input) {
+        if (input == null) return null;
 
-        char[] passwordArray = password.toCharArray(); //turn in into array for indexing
-        for (int i = 0; i < password.length(); i++) { //simple hashing algorithm that scrambles digits
-            int randomDigit = (int) (Math.random() *password.length());
-            int a = password.charAt(i);
-            int b = password.charAt(randomDigit);
-            int c = a;
-            a = b;
-            b = c;
+        StringBuilder out = new StringBuilder();
 
-            passwordArray[i] = (char) a;
-            passwordArray[randomDigit] = (char) b;
+        for (int i = 0; i < input.length(); i++) { //simple deterministic scramble
+            char c = input.charAt(i);
+             
+            c = (char) (c + 3 + (i % 5)); //shift character and mix with position
+
+            out.append(c);
         }
-        System.out.println(passwordArray);
-        return hashed.toString();
 
-
-        
+        return out.reverse().toString(); //reversed for added security
     }
-
 }
+
+
+
