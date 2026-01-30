@@ -14,6 +14,8 @@ import ci553.happyshop.storageAccess.DatabaseRW;
 import ci553.happyshop.storageAccess.DatabaseRWFactory;
 import javafx.application.Application;
 import javafx.stage.Stage;
+
+import javax.print.attribute.standard.Media;
 import java.io.IOException;
 
 /**
@@ -42,13 +44,12 @@ public class Main extends Application {
     //starts the system
     @Override
     public void start(Stage window) throws IOException {
-        startCustomerClient();
-        startPickerClient();
-        startOrderTracker();
 
         startCustomerClient();
         startPickerClient();
         startOrderTracker();
+
+
 
         // Initializes the order map for the OrderHub. This must be called after starting the observer clients
         // (such as OrderTracker and Picker clients) to ensure they are properly registered for receiving updates.
@@ -74,6 +75,8 @@ public class Main extends Application {
         CustomerController cusController = new CustomerController();
         CustomerModel cusModel = new CustomerModel();
         DatabaseRW databaseRW = DatabaseRWFactory.createDatabaseRW();
+
+
 
         cusView.cusController = cusController;
         cusController.cusModel = cusModel;
