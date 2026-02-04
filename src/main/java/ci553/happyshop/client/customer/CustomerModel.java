@@ -15,11 +15,25 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import ci553.happyshop.discount.DiscountStrategy;
+import ci553.happyshop.discount.NoDiscount;
+
+
 /**
- * TODO
- * You can either directly modify the CustomerModel class to implement the required tasks,
- * or create a subclass of CustomerModel and override specific methods where appropriate.
+ *CustomerModel contains the customers side of the business logic for HappyShop
+ *
+ * It allows for the following:
+ * - Search for products by ID via the database access layer
+ * - Display the customer trolly contents and maintain it
+ * - update the view within the current UI state
+ * - perform checkout operations including stock operations
+ *
+ * Design:
+ * - Acts as a model in the MVC structure which keeps UI logic seperate from the business logic
+ * - Includes defensive checks which improve robustness and allows for units testing without requiring the UI for assistance
+ * - utilises discountStrategy to apply discounts without modifying the checkout logic
  */
+
 public class CustomerModel {
     public CustomerView cusView;
     public DatabaseRW databaseRW; //Interface type, not specific implementation
@@ -27,12 +41,15 @@ public class CustomerModel {
 
     private Product theProduct =null; // product found from search
     private ArrayList<Product> trolley =  new ArrayList<>(); // a list of products in trolley
+    private String displayTaReceipt = ""; // Text area content showing receipt after checkout (Receipt Page)
+    private String displayTaSearchResult = "";
+    private DiscountStrategy discountStrategy = new NoDiscount();
 
     // Four UI elements to be passed to CustomerView for display updates.
     private String imageName = "imageHolder.jpg";                // Image to show in product preview (Search Page)
     private String displayLaSearchResult = "No Product was searched yet"; // Label showing search result message (Search Page)
     private String displayTaTrolley = "";                                // Text area content showing current trolley items (Trolley Page)
-    private String displayTaReceipt = "";                                // Text area content showing receipt after checkout (Receipt Page)
+
 
     //SELECT productID, description, image, unitPrice,inStock quantity
     void search() throws SQLException {
@@ -80,6 +97,9 @@ public class CustomerModel {
         displayTaReceipt=""; // Clear receipt to switch back to trolleyPage (receipt shows only when not empty)
         updateView();
     }
+    public void setDiscountStrategy(DiscountStrategy discountStrategy) {
+        this.discountStrategy = discountStrategy;
+    }
 
     void checkOut() throws IOException, SQLException {
         if(!trolley.isEmpty()){
@@ -101,7 +121,10 @@ public class CustomerModel {
                         "Order_ID: %s\nOrdered_Date_Time: %s\n%s",
                         theOrder.getOrderId(),
                         theOrder.getOrderedDateTime(),
-                        ProductListFormatter.buildString(theOrder.getProductList())
+                        ProductListFormatter.buildString(
+                                theOrder.getProductList(),
+                                discountStrategy
+                        )
                 );
                 System.out.println(displayTaReceipt);
             }
@@ -184,3 +207,4 @@ public class CustomerModel {
         return trolley;
     }
 }
+

@@ -36,3 +36,8 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+# Ignore runtime database files
+happyShopDB/
+orders/
+derby.log

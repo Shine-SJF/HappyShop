@@ -4,6 +4,11 @@ import ci553.happyshop.catalogue.Product;
 
 import java.util.ArrayList;
 
+import ci553.happyshop.discount.DiscountStrategy;
+
+import ci553.happyshop.discount.NoDiscount;
+
+
 /**
  * This class builds a formatted, receipt-like summary from a list of products.
  * It is used by:
@@ -12,21 +17,25 @@ import java.util.ArrayList;
  */
 
 public class ProductListFormatter {
+
     /**
-     * Builds a formatted string showing each product's ID, description,
-     * quantity ordered, and total price. Also includes a total price at the end.
-     * @param proList a List of products
-     * @return A nicely formatted string representation of the product list with totals
+     * Backwards-compatible version: no discount applied.
      */
     public static String buildString(ArrayList<Product> proList) {
+        return buildString(proList, new NoDiscount());
+    }
+    /**
+     * @param proList
+     * @param strategy
+     * @return
+     */
+    public static String buildString(ArrayList<Product> proList, DiscountStrategy strategy) {
         StringBuilder sb = new StringBuilder();
-        double totalPrice=0;
+        double totalPrice = 0;
         for (Product pr : proList) {
             int orderedQuantity = pr.getOrderedQuantity();
-            //%-18.18s, format the argument as a String,
-            // -18 → Left-align the string in 18-character wide space.
-            //.18 → Truncate the string to at most 18 characters
-            String aProduct=String.format(" %-7s %-18.18s (%2d) £%7.2f\n",
+
+            String aProduct = String.format(" %-7s %-18.18s (%2d) £%7.2f\n",
                     pr.getProductId(),
                     pr.getProductDescription(),
                     pr.getOrderedQuantity(),
@@ -36,11 +45,14 @@ public class ProductListFormatter {
             totalPrice = totalPrice + pr.getUnitPrice() * orderedQuantity;
         }
 
+        double discountedTotal = strategy.applyDiscount(totalPrice);
         String lineSeparator = "-".repeat(44) + "\n";
-        String total = String.format(" %-35s £%7.2f\n", "Total", totalPrice);
-
+        String baseTotalLine = String.format(" %-35s £%7.2f\n", "Total (before discount)", totalPrice);
+        String finalTotalLine = String.format(" %-35s £%7.2f\n", "Total (after discount)", discountedTotal);
         sb.append(lineSeparator);
-        sb.append(total);
+        sb.append(baseTotalLine);
+        sb.append(finalTotalLine);
         return sb.toString();
     }
 }
+
