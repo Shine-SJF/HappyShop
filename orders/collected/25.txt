@@ -1,0 +1,10 @@
+Order ID: 25 
+State: Collected
+OrderedDateTime: 2026-01-11 16:24:18 
+ProgressingDateTime: 2026-01-11 16:24:22
+CollectedDateTime: 2026-01-11 16:24:22
+Items:
+ 0001    TV                 ( 1) £2000.00
+--------------------------------------------
+ Total                               £2000.00
+

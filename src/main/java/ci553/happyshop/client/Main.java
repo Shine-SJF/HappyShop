@@ -1,162 +1,157 @@
 package ci553.happyshop.client;
 
-import ci553.happyshop.client.customer.*;
-
-import ci553.happyshop.client.emergency.EmergencyExit;
-import ci553.happyshop.client.orderTracker.OrderTracker;
-import ci553.happyshop.client.picker.PickerController;
-import ci553.happyshop.client.picker.PickerModel;
-import ci553.happyshop.client.picker.PickerView;
-
-import ci553.happyshop.client.warehouse.*;
+import ci553.happyshop.client.auth.LoginController;
+import ci553.happyshop.client.auth.LoginModel;
+import ci553.happyshop.client.auth.LoginView;
 import ci553.happyshop.orderManagement.OrderHub;
-import ci553.happyshop.storageAccess.DatabaseRW;
-import ci553.happyshop.storageAccess.DatabaseRWFactory;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.stage.Stage;
-import java.io.IOException;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
- * The Main JavaFX application class. The Main class is executable directly.
- * It serves as a foundation for UI logic and starts all the clients (UI) in one go.
+ * Main Application Entry Point - Dual Login Display
  *
- * This class launches all standalone clients (Customer, Picker, OrderTracker, Warehouse, EmergencyExit)
- * and links them together into a fully working system.
+ * DUAL LOGIN FLOW:
+ * 1. Initialize OrderHub (backend system)
+ * 2. Show TWO login screens simultaneously:
+ *    - Customer Login (left side)
+ *    - Warehouse/Staff Login (right side)
+ * 3. After successful login, appropriate client launches
  *
- * It performs essential setup tasks, such as initializing the order map in the OrderHub
- * and registering observers.
- *
- * Note: Each client type can be instantiated multiple times (e.g., calling startCustomerClient() as many times as needed)
- * to simulate a multi-user environment, where multiple clients of the same type interact with the system concurrently.
- *
- * @version 1.0
- * @author  Shine Shan University of Brighton
  */
-
 public class Main extends Application {
 
+    private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
+
     public static void main(String[] args) {
-        launch(args); // Launches the JavaFX application and calls the @Override start()
+        System.out.println("========================================");
+        System.out.println("   🛍️ HappyShop System Starting...");
+        System.out.println("========================================");
+        System.out.println();
+        System.out.println("🔐 Dual Login Display");
+        System.out.println("   Customer & Warehouse Logins");
+        System.out.println();
+        launch(args);
     }
 
-    //starts the system
     @Override
-    public void start(Stage window) throws IOException {
-        startCustomerClient();
-        startPickerClient();
-        startOrderTracker();
+    public void start(Stage primaryStage) {
+        try {
+            System.out.println("⚙️  Initializing system...");
 
-        startCustomerClient();
-        startPickerClient();
-        startOrderTracker();
+            // Initialize backend OrderHub system
+            initializeOrderHub();
+            System.out.println("✅ Backend initialized");
 
-        // Initializes the order map for the OrderHub. This must be called after starting the observer clients
-        // (such as OrderTracker and Picker clients) to ensure they are properly registered for receiving updates.
-        initializeOrderMap();
+            System.out.println();
+            System.out.println("🔒 Starting dual login screens...");
+            System.out.println();
 
-        startWarehouseClient();
-        startWarehouseClient();
+            // Start TWO login screens
+            startCustomerLoginScreen();
+            startWarehouseLoginScreen();
 
-        startEmergencyExit();
+            System.out.println("✅ Both login screens ready");
+            System.out.println();
+            System.out.println("📌 Default Accounts:");
+            System.out.println("   Customer: customer / customer123");
+            System.out.println("   Admin: admin / admin123");
+            System.out.println("   Staff: staff / staff123");
+            System.out.println("   Warehouse: warehouse1 / warehouse123");
+            System.out.println("   Picker: picker / picker123");
+            System.out.println();
+            System.out.println("⚠️  IMPORTANT: Change default passwords after first login!");
+            System.out.println("========================================");
+
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Failed to start application", e);
+            System.err.println("❌ FATAL ERROR: " + e.getMessage());
+            e.printStackTrace();
+            Platform.exit();
+        }
     }
 
-    /** The customer GUI -search prodduct, add to trolley, cancel/submit trolley, view receipt
-     *
-     * Creates the Model, View, and Controller objects, links them together so they can communicate with each other.
-     * Also creates the DatabaseRW instance via the DatabaseRWFactory and injects it into the CustomerModel.
-     * Starts the customer interface.
-     *
-     * Also creates the RemoveProductNotifier, which tracks the position of the Customer View
-     * and is triggered by the Customer Model when needed.
+    /**
+     * Initialize OrderHub backend system
      */
-    private void startCustomerClient(){
-        CustomerView cusView = new CustomerView();
-        CustomerController cusController = new CustomerController();
-        CustomerModel cusModel = new CustomerModel();
-        DatabaseRW databaseRW = DatabaseRWFactory.createDatabaseRW();
-
-        cusView.cusController = cusController;
-        cusController.cusModel = cusModel;
-        cusModel.cusView = cusView;
-        cusModel.databaseRW = databaseRW;
-        cusView.start(new Stage());
-
-        //RemoveProductNotifier removeProductNotifier = new RemoveProductNotifier();
-        //removeProductNotifier.cusView = cusView;
-        //cusModel.removeProductNotifier = removeProductNotifier;
+    private void initializeOrderHub() {
+        try {
+            OrderHub orderHub = OrderHub.getOrderHub();
+            orderHub.initializeOrderMap();
+            System.out.println("   ✓ OrderHub initialized");
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Failed to initialize OrderHub", e);
+            System.err.println("   ⚠️  OrderHub initialization failed (non-critical)");
+        }
     }
 
-    /** The picker GUI, - for staff to pack customer's order,
-     *
-     * Creates the Model, View, and Controller objects for the Picker client.
-     * Links them together so they can communicate with each other.
-     * Starts the Picker interface.
-     *
-     * Also registers the PickerModel with the OrderHub to receive order notifications.
+    /**
+     * Start Customer Login Screen (LEFT SIDE)
      */
-    private void startPickerClient(){
-        PickerModel pickerModel = new PickerModel();
-        PickerView pickerView = new PickerView();
-        PickerController pickerController = new PickerController();
-        pickerView.pickerController = pickerController;
-        pickerController.pickerModel = pickerModel;
-        pickerModel.pickerView = pickerView;
-        pickerModel.registerWithOrderHub();
-        pickerView.start(new Stage());
+    private void startCustomerLoginScreen() {
+        try {
+            Stage customerStage = new Stage();
+            customerStage.setTitle("HappyShop - Customer Login");
+
+            // Create MVC components
+            LoginModel loginModel = new LoginModel();
+            LoginView loginView = new LoginView();
+            LoginController loginController = new LoginController();
+
+            // Link components
+            loginView.loginController = loginController;
+            loginController.loginModel = loginModel;
+            loginModel.loginView = loginView;
+
+            // Start customer login
+            loginView.start(customerStage);
+
+            // Position on left side
+            customerStage.setX(100);
+            customerStage.setY(100);
+
+            System.out.println("   ✓ Customer login screen launched (LEFT)");
+
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Failed to start customer login", e);
+            throw new RuntimeException("Cannot start customer login", e);
+        }
     }
 
-    //The OrderTracker GUI - for customer to track their order's state(Ordered, Progressing, Collected)
-    //This client is simple and does not follow the MVC pattern, as it only registers with the OrderHub
-    //to receive order status notifications. All logic is handled internally within the OrderTracker.
-    private void startOrderTracker(){
-        OrderTracker orderTracker = new OrderTracker();
-        orderTracker.registerWithOrderHub();
-    }
-
-    //initialize the orderMap<orderId, orderState> for OrderHub during system startup
-    private void initializeOrderMap(){
-        OrderHub orderHub = OrderHub.getOrderHub();
-        orderHub.initializeOrderMap();
-    }
-
-    /** The Warehouse GUI- for warehouse staff to manage stock
-     * Initializes the Warehouse client's Model, View, and Controller,and links them together for communication.
-     * It also creates the DatabaseRW instance via the DatabaseRWFactory and injects it into the Model.
-     * Once the components are linked, the warehouse interface (view) is started.
-     *
-     * Also creates the dependent HistoryWindow and AlertSimulator,
-     * which track the position of the Warehouse window and are triggered by the Model when needed.
-     * These components are linked after launching the Warehouse interface.
+    /**
+     * Start Warehouse/Staff Login Screen (RIGHT SIDE)
      */
-    private void startWarehouseClient(){
-        WarehouseView view = new WarehouseView();
-        WarehouseController controller = new WarehouseController();
-        WarehouseModel model = new WarehouseModel();
-        DatabaseRW databaseRW = DatabaseRWFactory.createDatabaseRW();
+    private void startWarehouseLoginScreen() {
+        try {
+            Stage warehouseStage = new Stage();
+            warehouseStage.setTitle("HappyShop - Warehouse/Staff Login");
 
-        // Link controller, model, and view and start view
-        view.controller = controller;
-        controller.model = model;
-        model.view = view;
-        model.databaseRW = databaseRW;
-        view.start(new Stage());
+            // Create MVC components
+            LoginModel loginModel = new LoginModel();
+            LoginView loginView = new LoginView();
+            LoginController loginController = new LoginController();
 
-        //create dependent views that need window info
-        HistoryWindow historyWindow = new HistoryWindow();
-        AlertSimulator alertSimulator = new AlertSimulator();
+            // Link components
+            loginView.loginController = loginController;
+            loginController.loginModel = loginModel;
+            loginModel.loginView = loginView;
 
-        // Link after start
-        model.historyWindow = historyWindow;
-        model.alertSimulator = alertSimulator;
-        historyWindow.warehouseView = view;
-        alertSimulator.warehouseView = view;
-    }
+            // Start warehouse login
+            loginView.start(warehouseStage);
+            loginView.showWarehouseLoginScreen();
 
-    //starts the EmergencyExit GUI, - used to close the entire application immediatelly
-    private void startEmergencyExit(){
-        EmergencyExit.getEmergencyExit();
+            // Position on right side
+            warehouseStage.setX(650);
+            warehouseStage.setY(100);
+
+            System.out.println("   ✓ Warehouse login screen launched (RIGHT)");
+
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Failed to start warehouse login", e);
+            throw new RuntimeException("Cannot start warehouse login", e);
+        }
     }
 }
-
-
-

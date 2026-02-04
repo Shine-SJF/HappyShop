@@ -1,85 +1,130 @@
 package ci553.happyshop.catalogue;
 
-/**
- * The Product class used to hold the information about a product:
- *
- * Fields:
- * - productId: Unique identifier for the product (eg 0001).
- * - description: Textual description of the product.
- * - unitPrice: Price per single unit of the product.
- * - orderedQuantity: Quantity involved in a customer's order.
- * - stockQuantity: Quantity currently available in stock.
- */
+import ci553.happyshop.catalogue.StockLevelIndicator.StockLevel;
 
+/**
+ * Enhanced Product class with stock level tracking and low stock warning support.
+ *
+ * - Tracks maximum stock capacity for percentage calculations
+ * - Integrates with StockLevelIndicator for intelligent stock status
+ * - Provides formatted stock status information
+ * - Single Responsibility: Product manages product data
+ * - Open/Closed: Extended functionality without modifying existing behavior
+ * - Dependency Inversion: Depends on StockLevelIndicator abstraction
+ *
+ */
 public class Product implements Comparable<Product> {
     private String proId;
+    private String productName;          // NEW: Added product name field
     private String proDescription;
     private String proImageName;
     private double unitPrice;
-    private int orderedQuantity =1; //The quantity of this product in the customer's order.
-    private int stockQuantity;//
+    private int orderedQuantity = 1;
+    private int stockQuantity;
+    private int maxStockCapacity; // Track maximum stock for percentage calculation
 
     /**
-     * Constructor,used by DatabaseRW, make product from searching ResultSet
-     * @param id Product ID
-     * @param des Description of product
-     * @param image image name of product, eg 0001.jpg (0001 is product ID)
-     * @param aPrice The price of the product
-     * @param stockQuantity The Quantity of the product in stock
+     * Primary constructor used by DatabaseRW.
+     * Automatically sets maxStockCapacity to initial stock quantity.
      */
-    public Product(String id, String des, String image, double aPrice, int stockQuantity) {
-        proId = id;
-        proDescription = des;
-        proImageName = image;
-        unitPrice = aPrice;
+    public Product(String id, String name, String des, String image, double aPrice, int stockQuantity) {
+        this.proId = id;
+        this.productName = name;
+        this.proDescription = des;
+        this.proImageName = image;
+        this.unitPrice = aPrice;
         this.stockQuantity = stockQuantity;
+        this.maxStockCapacity = stockQuantity; // Initialize max capacity
     }
 
-    // a set of getter methods
-    public String getProductId() { return proId;}
-    public String getProductDescription() { return proDescription;}
-    public String getProductImageName() { return proImageName;}
-    public double getUnitPrice() { return unitPrice;}
-    public int getOrderedQuantity() { return orderedQuantity;}
-    public int getStockQuantity() { return stockQuantity;}
+    /**
+     * Backward compatibility constructor (for existing code)
+     * Uses description as product name
+     */
+    public Product(String id, String des, String image, double aPrice, int stockQuantity) {
+        this(id, des, des, image, aPrice, stockQuantity); // Use description as both name and description
+    }
 
-    //a setter method
+    /**
+     * Extended constructor with explicit max stock capacity.
+     * Useful when restocking products with known maximum capacity.
+     */
+    public Product(String id, String name, String des, String image, double aPrice,
+                   int stockQuantity, int maxStockCapacity) {
+        this.proId = id;
+        this.productName = name;
+        this.proDescription = des;
+        this.proImageName = image;
+        this.unitPrice = aPrice;
+        this.stockQuantity = stockQuantity;
+        this.maxStockCapacity = maxStockCapacity;
+    }
+
+    // ========== GETTERS ==========
+    public String getProductId() { return proId; }
+    public String getProductDescription() { return proDescription; }
+    public String getProductImageName() { return proImageName; }
+    public double getUnitPrice() { return unitPrice; }
+    public int getOrderedQuantity() { return orderedQuantity; }
+    public int getStockQuantity() { return stockQuantity; }
+    public int getMaxStockCapacity() { return maxStockCapacity; }
+
+    // ========== SETTERS ==========
     public void setOrderedQuantity(int orderedQuantity) {
         this.orderedQuantity = orderedQuantity;
     }
 
+    // ========== STOCK LEVEL METHODS ==========
+
+    /**
+     * Gets the current stock level status.
+     * Delegates to StockLevelIndicator for calculation.
+     * @return StockLevel enum (CRITICAL, LOW, MEDIUM, HIGH)
+     */
+    public StockLevel getStockLevel() {
+        return StockLevelIndicator.determineStockLevel(stockQuantity, maxStockCapacity);
+    }
+    /**
+     * Gets the stock percentage (0.0 to 1.0).
+     * Stock percentage as decimal
+     */
+    public double getStockPercentage() {
+        return StockLevelIndicator.calculateStockPercentage(stockQuantity, maxStockCapacity);
+    }
+    /**
+     * Gets formatted stock status text for display.
+     * Human-readable stock status
+     */
+    public String getStockStatusText() {
+        StockLevel level = getStockLevel();
+        return level.getDisplayText();
+    }
+
     @Override
     public int compareTo(Product otherProduct) {
-        // Compare by product ID or any other attribute you want to sort by
-        return this.proId.compareTo(otherProduct.proId); // Sort by proId alphabetically (ascending);
+        return this.proId.compareTo(otherProduct.proId);
     }
 
     @Override
-    // Creates a formatted string containing ID, price (with 2 decimal places), stock amount, and description
-    // Used in the Warehouse search page to display searched product information
     public String toString() {
-        String productInfo = String.format("Id: %s, £%.2f/uint, stock: %d \n%s",
-                          proId, unitPrice,stockQuantity,proDescription);
-        return productInfo;
+        // Updated to include product name
+        return String.format("ID: %s - %s, £%.2f/unit, stock: %d (%s)\nDescription: %s",
+                proId,
+                productName,
+                unitPrice,
+                stockQuantity,
+                getStockStatusText(),
+                proDescription
+        );
     }
 
-    /** alternative constructors retained for possible future use.
-     *
-    public Product(String id, String des, double aPrice, int orderedQuantity, int stockQuantity) {
-        proId = id;
-        proDescription = des;
-        unitPrice = aPrice;
-        this.orderedQuantity = orderedQuantity;
-        this.stockQuantity = stockQuantity;
-    }
 
-    public Product(String id, String des, double aPrice, int orderedQuantity) {
-        proId = id;
-        proDescription = des;
-        unitPrice = aPrice;
-        this.orderedQuantity = orderedQuantity;
-    }
+    /**
+     * Clone method for creating copies of products
+     * A new Product instance with the same values
      */
-
+    public Product clone() {
+        return new Product(proId, productName, proDescription, proImageName,
+                unitPrice, stockQuantity, maxStockCapacity);
+    }
 }
-

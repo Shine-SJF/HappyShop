@@ -1,0 +1,161 @@
+HappyShop project - client/Picker - category
+
+Purpose:
+    Manages order picking operations, providing warehouse picker staff
+    with interface to locate products, fulfill orders, and track picking
+    progress following MVC pattern
+
+PickerClient:
+    Purpose:
+    Main entry point and container for the picker application, managing the picker
+    staff interface and application lifecycle on handheld devices or terminals.
+
+    Responsibilities:
+    - Launches the picker application on device
+    - Initializes all picker MVC components
+    - Manages the main picker window/screen
+    - Handles navigation between picking screens
+    - Manages picker session and authentication
+    - Coordinates communication between picker modules
+    - Handles application shutdown and cleanup
+    - Manages device-specific features (scanner, screen size)
+    - Initializes connection to warehouse system
+    - Handles offline mode if network disconnected
+
+    Usage:
+    Created and launched when picker staff logs in on handheld device or terminal.
+    Acts as main container for all picker functionality. Manages transitions
+    between order list, picking screen, and completion screens. Maintains picker
+    session throughout shift. Entry point for picker application on mobile devices.
+
+PickerController:
+    Purpose:
+    Central controller that manages picking logic and coordinates interactions
+    between PickerView, PickerModel, and warehouse system for order fulfillment.
+
+    Responsibilities:
+    - Handles user actions from PickerView
+    - Assigns orders to pickers
+    - Processes item scanning and picking confirmations
+    - Validates picked quantities against order requirements
+    - Manages picking workflow (item by item)
+    - Coordinates with warehouse inventory system
+    - Updates view based on model changes
+    - Handles error scenarios (wrong item, insufficient stock)
+    - Tracks picking progress and completion
+    - Manages order completion and handoff
+    - Validates barcode scans
+    - Handles picking exceptions and corrections
+
+    Usage:
+    Created by PickerClient during initialization. Receives all user interactions
+    from PickerView (scans, button clicks). Calls PickerModel for data operations
+    and validation. Updates PickerView based on results. Coordinates entire picking
+    workflow from order assignment to completion.
+
+PickerModel:
+    Purpose:
+    Manages picker data, order information, and communicates with warehouse server
+    to retrieve orders, validate picks, and update inventory after picking.
+
+    Responsibilities:
+    - Stores current picker information
+    - Retrieves assigned orders from server
+    - Maintains picking queue for current picker
+    - Validates scanned items against order requirements
+    - Updates order status as items are picked
+    - Communicates with inventory system
+    - Records picking transactions
+    - Handles data persistence and synchronization
+    - Manages offline data storage if network unavailable
+    - Validates product barcodes
+    - Tracks item locations in warehouse
+    - Updates stock levels after picking
+
+    Usage:
+    Called by PickerController to perform data operations. Communicates with
+    warehouse server and database. Maintains current picking state. Provides order
+    and product data to controller. Validates all picking operations. Handles
+    synchronization between handheld device and main system.
+
+PickerUIStyles:
+    Purpose:
+    Defines visual styling, themes, colors, and layout constants for the picker
+    interface optimized for handheld devices and quick scanning operations.
+
+    Properties:
+    - Color scheme: High contrast colors for warehouse environment
+    - Success color: Green for correct picks
+    - Error color: Red for wrong items or errors
+    - Warning color: Yellow for attention needed
+    - Font families: Large, bold fonts for readability
+    - Font sizes: Extra large for viewing from distance/while moving
+    - Button styles: Large touch-friendly buttons
+    - Spacing constants: Generous spacing for ease of use
+    - Border styles: Clear visual separation
+    - Icon sizes: Large icons for quick recognition
+    - Status indicators: Color-coded status badges
+    - Scan feedback: Visual and audio cues for scans
+
+    Responsibilities:
+    - Provides consistent color palette for picker interface
+    - Defines large, touch-friendly UI elements
+    - Ensures high visibility in warehouse lighting
+    - Makes UI optimized for mobile/handheld devices
+    - Supports quick visual feedback (colors, animations)
+    - Defines layout for small screens
+    - Provides accessibility for various lighting conditions
+    - Ensures color-blind friendly design
+
+    Usage:
+    Used by PickerView to style all UI components for handheld devices. Applied
+    when creating buttons, labels, and status indicators. Ensures picker
+    application is easy to use while walking and scanning. Optimized for quick
+    glances and touch interaction. Makes interface visible in various warehouse
+    lighting conditions.
+
+PickerView:
+    Purpose:
+    Provides the graphical user interface for picker staff on handheld devices,
+    displaying order details, item locations, and picking progress with large,
+    touch-friendly controls.
+
+    UI Components:
+    - Current order summary panel
+    - Item to pick display (large, prominent)
+      * Product name
+      * Product image
+      * Quantity needed
+      * Warehouse location (aisle, bin)
+    - Barcode scanner input
+    - Quantity confirmation buttons (large + and - buttons)
+    - "Confirm Pick" button (large, green)
+    - "Report Issue" button
+    - Progress indicator (items picked / total items)
+    - Current item location indicator
+    - Pick list (remaining items)
+    - Order details section
+    - Success/error message display
+    - Scanner status indicator
+
+    Responsibilities:
+    - Renders picker UI optimized for handheld devices
+    - Displays current item to pick with prominent details
+    - Shows warehouse location clearly (aisle, bin number)
+    - Captures barcode scans via device scanner
+    - Provides large touch-friendly buttons
+    - Sends picking events to PickerController
+    - Updates display based on controller commands
+    - Applies PickerUIStyle to all components
+    - Provides visual feedback for scans (green/red flash)
+    - Shows picking progress
+    - Displays error messages clearly
+    - Provides audio feedback for successful scans
+    - Shows next item automatically after confirmation
+
+    Usage:
+    Created by PickerClient during initialization. Controlled by PickerController.
+    Displays picking interface on handheld device. Captures scans and button
+    presses. Sends events to controller. Updated by controller as picking
+    progresses. Optimized for one-handed use while holding scanner. Primary
+    interface for picker staff during order fulfillment.

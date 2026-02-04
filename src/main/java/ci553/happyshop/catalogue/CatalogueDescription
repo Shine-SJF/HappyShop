@@ -1,0 +1,112 @@
+HappyShop project - catalogue category
+
+purpose:
+manages product information, inventory, search and browsing functionality
+
+Product:
+
+Purpose:
+    represents a product item in the shop with all its details and attribtues
+
+properties:
+    -productId: unique identifier for the product
+    -prodcutName: name/title of the product
+    -description: detailed description of the product
+    -price: current selling price
+    -quantities: Available stock quantity
+    -category: product category (Electronics, clothing, books)
+    -imageURL: path to product image
+    -manufacturer: brand or manufacturer name
+    -dataAdded: when product was added to catalogue
+
+responsibilities:
+    -stores all product information
+    -provides getter/setters for product properties
+    -may include validation for price, quantities, etc.
+    -calculates discounted price if applicable
+
+usage:
+    created when new product are add to the system. Retrieved when customers browser or search for product.
+    updated when inventory changes or prices are modified
+
+order:
+    Purpose:
+    Represents a customer's order containing products to be purchased.
+
+    Properties:
+    - orderId: Unique identifier for the order
+    - customerId: ID of the customer who placed the order
+    - orderDate: When the order was created
+    - orderStatus: Current status (PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED)
+    - totalAmount: Total cost of all items in the order
+    - shippingAddress: Delivery address for the order
+    - paymentMethod: How customer will pay (CREDIT_CARD, DEBIT_CARD, PAYPAL)
+    - orderItems: List of Product objects and quantities in the order
+
+    Responsibilities:
+    - Stores all order information and items
+    - Calculates total order amount including taxes and shipping
+    - Tracks order status throughout fulfillment process
+    - Provides getters/setters for order properties
+    - Validates order data before processing
+
+    Key Methods:
+    - addProduct(product, quantity): Adds a product to the order
+    - removeProduct(productId): Removes a product from the order
+    - calculateTotal(): Computes total cost of order
+    - updateStatus(newStatus): Changes order status
+    - getOrderSummary(): Returns formatted order details
+
+    Usage:
+    Created when customer proceeds to checkout from shopping cart. Used by
+    OrderProcessing to manage order fulfillment. Retrieved by customers to
+    track their order history. Updated by staff when processing and shipping
+    orders.
+
+StockLevelIdicator:
+    Purpose:
+    Provides visual and logical indicators of product availability status based
+    on current stock levels.
+
+    Stock Status Levels:
+    - IN_STOCK: Product has sufficient quantity available (quantity > 10)
+      * Display: Green indicator, "In Stock"
+      * Customer can order any quantity up to available stock
+
+    - LOW_STOCK: Product has limited quantity (1-10 items)
+      * Display: Yellow/Orange indicator, "Only X left in stock"
+      * Warns customer that supply is limited
+      * May trigger restock alert for staff
+
+    - OUT_OF_STOCK: Product has zero quantity
+      * Display: Red indicator, "Out of Stock"
+      * Customer cannot add to cart
+      * Shows "Notify me when available" option
+
+    - DISCONTINUED: Product no longer sold
+      * Display: Grey indicator, "No longer available"
+      * Cannot be ordered
+      * May suggest alternative products
+
+    Responsibilities:
+    - Determines stock status based on Product quantity
+    - Provides appropriate status messages and colors for UI
+    - Triggers alerts when stock levels are low
+    - Handles threshold calculations for different status levels
+    - May implement custom thresholds per product category
+
+    Key Methods:
+    - getStatus(product): Returns current stock status
+    - getStatusMessage(product): Returns display text (e.g., "3 left in stock")
+    - getStatusColor(): Returns color code for UI (GREEN, YELLOW, RED, GREY)
+    - isAvailableForPurchase(): Boolean check if can be ordered
+    - shouldRestock(product): Checks if restock alert needed
+    - setLowStockThreshold(threshold): Customizes low stock level
+    - getStockPercentage(product): Returns stock level as percentage
+
+    Usage:
+    Used by UI when displaying products to show availability status with
+    appropriate colors and messages. Called by Product class to determine
+    if item can be added to cart. Used by inventory management system to
+    generate restock alerts. Checked by Order processing before confirming
+    purchases.

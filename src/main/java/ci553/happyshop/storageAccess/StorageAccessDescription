@@ -1,0 +1,263 @@
+HappyShop project - StorageAccess - category:
+
+Purpose:
+    Manages all data persistence, database operations, and file storage
+    for products, orders, users, and images in the HappyShop system
+
+DatabaseRW:
+    Purpose:
+    Abstract base class or interface that defines the contract for database read
+    and write operations, providing a standard API for data persistence across
+    different database implementations.
+
+    Properties:
+    - connection: Database connection object
+    - isConnected: Connection status flag
+    - transactionActive: Whether a transaction is in progress
+    - queryTimeout: Maximum time for query execution
+    - autoCommit: Auto-commit mode setting
+
+    Responsibilities:
+    - Defines standard CRUD (Create, Read, Update, Delete) operations
+    - Provides template methods for database operations
+    - Manages database connection lifecycle
+    - Handles transaction management (begin, commit, rollback)
+    - Ensures consistent error handling across implementations
+    - Provides query execution methods
+    - Manages prepared statements
+    - Implements connection pooling (if applicable)
+    - Defines data validation rules
+
+    Usage:
+    Extended or implemented by specific database implementations (DerbyRW,
+    UserDatabaseRW, etc.). Provides common interface for all data access objects.
+    Ensures consistent database operations across the application. Used by
+    DatabaseRWFactory to create appropriate database instances.
+
+DatabaseRWFactory:
+    Purpose:
+    Factory class that creates and provides appropriate database reader/writer
+    instances based on data type or configuration, implementing the Factory design
+    pattern for database access objects.
+
+    Responsibilities:
+    - Creates appropriate DatabaseRW implementations
+    - Determines which database implementation to use
+    - Manages database connection configuration
+    - Provides singleton instances of database objects
+    - Handles database initialization
+    - Configures connection parameters (URL, username, password)
+    - Registers database drivers
+    - Creates connection pools
+    - Handles database type switching (Derby, MySQL, etc.)
+    - Provides centralized database object creation
+
+    Key Methods:
+    - getProductDatabase(): Returns database instance for product data
+    - getOrderDatabase(): Returns database instance for order data
+    - getUserDatabase(): Returns database instance for user data
+    - getImageDatabase(): Returns database instance for image metadata
+    - createDatabaseInstance(type): Creates specific database implementation
+    - initializeDatabase(): Sets up database connections and pools
+    - closeAllConnections(): Closes all active database connections
+
+    Usage:
+    Called by application components when they need database access. Provides
+    appropriate database instance based on data type. Centralizes database
+    configuration and creation. Used at application startup to initialize database
+    connections. Ensures single point of control for database management.
+
+DerbyRW:
+    Purpose:
+    Concrete implementation of DatabaseRW for Apache Derby embedded database,
+    providing read/write operations for all HappyShop data using Derby-specific
+    SQL and features.
+
+    Properties:
+    - derbyConnection: Derby-specific database connection
+    - databasePath: File path to Derby database files
+    - databaseName: Name of the Derby database
+    - isEmbedded: Whether using embedded or network Derby
+    - schemaName: Database schema name
+    - autoCreate: Whether to auto-create database if not exists
+
+    Responsibilities:
+    - Implements all DatabaseRW methods for Derby
+    - Manages Derby embedded database connections
+    - Executes Derby-specific SQL queries
+    - Handles Derby database creation and initialization
+    - Manages Derby transaction semantics
+    - Performs CRUD operations on all tables:
+      * Products table
+      * Orders table
+      * Users table
+      * OrderItems table
+      * Categories table
+    - Handles Derby-specific data types
+    - Manages Derby database file system
+    - Performs database schema migrations
+    - Optimizes queries for Derby engine
+
+    Usage:
+    Created by DatabaseRWFactory when Derby is configured as database. Used by
+    all application components for data persistence. Stores all application data
+    in Derby database files. Performs all CRUD operations on database tables.
+    Manages Derby database lifecycle.
+
+ImageFileManager
+    Purpose:
+    Manages storage, retrieval, and organization of product images and other
+    media files in the file system, handling file operations separate from
+    database storage.
+
+    Properties:
+    - imageDirectory: Root directory for image storage
+    - thumbnailDirectory: Directory for thumbnail images
+    - tempDirectory: Temporary upload directory
+    - supportedFormats: List of supported image formats (JPG, PNG, GIF, etc.)
+    - maxFileSize: Maximum allowed file size
+    - imageCache: Cache of recently accessed images
+    - compressionQuality: Image compression settings
+
+    Responsibilities:
+    - Stores product images to file system
+    - Retrieves images by product ID or filename
+    - Generates thumbnail versions of images
+    - Organizes images in directory structure
+    - Validates image formats and sizes
+    - Compresses images for storage
+    - Handles image uploads from UI
+    - Deletes images when products are removed
+    - Manages temporary upload files
+    - Provides image URLs for web display
+    - Handles image file naming conventions
+    - Creates backup copies of images
+    - Manages disk space for image storage
+
+    Key Methods:
+    - saveImage(productId, imageFile): Saves product image
+    - getImage(productId): Retrieves product image
+    - deleteImage(productId): Removes product image
+    - generateThumbnail(imageFile): Creates thumbnail version
+    - validateImageFormat(file): Checks if format is supported
+    - getImagePath(productId): Returns file path for image
+    - getImageURL(productId): Returns web URL for image
+    - compressImage(imageFile, quality): Reduces image file size
+    - cleanupTempFiles(): Removes temporary upload files
+    - getImageSize(productId): Returns file size in bytes
+    - imageExists(productId): Checks if image file exists
+    - copyImage(sourceId, targetId): Duplicates image file
+
+    Usage:
+    Called when products are added with images. Used by CatalogueManager to store
+    product images. Invoked by UI to retrieve images for display. Used during
+    product deletion to remove associated images. Handles all file system
+    operations for images separately from database operations.
+
+OrderFileManager:
+    Purpose:
+    Manages order-related file operations including order receipts, invoices,
+    packing slips, and order documentation storage in the file system.
+
+    Properties:
+    - orderDocumentDirectory: Root directory for order documents
+    - receiptDirectory: Directory for customer receipts
+    - invoiceDirectory: Directory for invoices
+    - packingSlipDirectory: Directory for packing slips
+    - archiveDirectory: Directory for archived orders
+    - documentFormat: Format for documents (PDF, TXT, etc.)
+    - retentionPeriod: How long to keep order documents
+
+    Responsibilities:
+    - Generates order receipts as PDF or text files
+    - Creates invoice documents for orders
+    - Generates packing slips for warehouse
+    - Stores order documentation in file system
+    - Retrieves order documents by order ID
+    - Organizes documents by date/customer
+    - Archives old order documents
+    - Manages document templates
+    - Handles document printing
+    - Provides document URLs for download
+    - Deletes expired documents based on retention policy
+    - Creates backup copies of important documents
+    - Generates shipping labels
+
+    Key Methods:
+    - generateReceipt(orderId): Creates customer receipt
+    - generateInvoice(orderId): Creates invoice document
+    - generatePackingSlip(orderId): Creates packing slip
+    - saveOrderDocument(orderId, document): Stores document
+    - getOrderReceipt(orderId): Retrieves receipt file
+    - getOrderInvoice(orderId): Retrieves invoice file
+    - getPackingSlip(orderId): Retrieves packing slip
+    - archiveOrder(orderId): Moves order documents to archive
+    - deleteOrderDocuments(orderId): Removes all order files
+    - printDocument(orderId, type): Sends document to printer
+    - emailReceipt(orderId, email): Emails receipt to customer
+    - getDocumentPath(orderId, type): Returns file path
+    - cleanupExpiredDocuments(): Removes old documents
+    - exportOrderData(orderId): Creates data export file
+
+    Usage:
+    Called after order is placed to generate receipt. Used by OrderProcessing to
+    create invoices. Invoked by warehouse to generate packing slips. Used by
+    customer service to retrieve order documents. Handles all order-related file
+    storage separate from database. Manages document lifecycle from creation to
+    archival.
+
+UserDatabaseRW:
+    Purpose:
+    Specialized database reader/writer for user account data, authentication
+    information, and user profiles, handling all user-related database operations
+    with appropriate security measures.
+
+    Properties:
+    - userConnection: Database connection for user data
+    - userTableName: Name of users table
+    - roleTableName: Name of user roles table
+    - sessionTableName: Name of active sessions table
+    - encryptionEnabled: Whether passwords are encrypted
+    - saltLength: Length of password salt
+    - sessionTimeout: Session expiration time
+
+    Responsibilities:
+    - Performs CRUD operations on user accounts
+    - Stores user credentials securely
+    - Manages password hashing and salting
+    - Handles user authentication queries
+    - Manages user roles and permissions
+    - Tracks active user sessions
+    - Updates user profile information
+    - Handles user registration
+    - Manages password reset operations
+    - Stores user preferences
+    - Tracks login history
+    - Manages account lockouts
+    - Handles email verification
+
+    Key Methods:
+    - createUser(user): Adds new user account to database
+    - getUser(userId): Retrieves user by ID
+    - getUserByUsername(username): Retrieves user by username
+    - updateUser(user): Updates user information
+    - deleteUser(userId): Removes user account
+    - authenticateUser(username, password): Verifies credentials
+    - changePassword(userId, newPassword): Updates user password
+    - getUserRole(userId): Returns user's role
+    - updateUserRole(userId, role): Changes user role
+    - createSession(userId): Creates new user session
+    - getActiveSession(userId): Retrieves user's session
+    - deleteSession(sessionId): Ends user session
+    - isUsernameTaken(username): Checks username availability
+    - getUserByEmail(email): Retrieves user by email address
+    - updateLastLogin(userId): Records login timestamp
+    - lockAccount(userId): Locks user account
+    - unlockAccount(userId): Unlocks user account
+
+    Usage:
+    Created by DatabaseRWFactory for user data operations. Used by Authentication
+    system to verify login credentials. Called during user registration to create
+    accounts. Used by UserManagement to update profiles. Invoked during password
+    reset. Manages all user data with security considerations. Separates user data
+    from other application data for security.

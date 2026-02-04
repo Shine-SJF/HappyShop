@@ -22,13 +22,10 @@ package ci553.happyshop.storageAccess;
 
 public class DatabaseRWFactory {
 
-    public static String dbURL = "jdbc:derby:happyShopDB"; //or other database URL in the future (eg MySQLRW or SQLiteRW)
+    public static String dbURL = "jdbc:derby:happyShopDB;create=true";
 
-    /**
-     * Creates an instance of DatabaseRW (currently returning DerbyRW, but can be modified to return other implementations).
-     */
     public static DatabaseRW createDatabaseRW() {
-        return new DerbyRW(); // or other database implementations in the future (eg MySQLRW or SQLiteRW)
+        return new DerbyRW();
     }
 }
 

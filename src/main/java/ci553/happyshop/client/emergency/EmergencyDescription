@@ -1,0 +1,53 @@
+HappyShop project - client/emergency - category
+
+Purpose:
+        Provides emergency shutdown and cleanup functionality to safely
+        terminate the application and handle unexpected errors or crashes
+
+EmergencyExit:
+    Purpose:
+    Handles graceful application shutdown in emergency situations, ensuring data
+    is saved and resources are properly released before termination.
+
+    Responsibilities:
+    - Provides emergency shutdown mechanism for the application
+    - Saves unsaved data before exit (shopping carts, pending orders)
+    - Closes database connections properly
+    - Releases network resources and file handles
+    - Logs shutdown reason and timestamp
+    - Displays shutdown notification to user
+    - Prevents data loss during unexpected termination
+    - Handles cleanup of temporary files
+    - Closes all open windows and frames
+    - Triggers cleanup routines in other components
+
+    Key Methods:
+    - triggerEmergencyExit(): Initiates emergency shutdown sequence
+    - triggerEmergencyExit(reason): Shutdown with specified reason
+    - saveApplicationState(): Persists current application state
+    - closeAllConnections(): Closes database and network connections
+    - releaseResources(): Frees up system resources
+    - logShutdown(reason): Records shutdown in system logs
+    - notifyUser(message): Displays shutdown message to user
+    - cleanupTempFiles(): Removes temporary files
+    - forceExit(exitCode): Forces immediate termination
+    - registerShutdownHook(): Registers with JVM shutdown hook
+    - executeCleanupTasks(): Runs cleanup task queue
+
+    Emergency Scenarios:
+    - Application crash or unhandled exception
+    - User clicks emergency exit button
+    - Critical system error detected
+    - Database connection failure
+    - Network communication failure
+    - Out of memory error
+    - User force-closes application window
+    - System shutdown or restart
+    - Critical data corruption detected
+
+    Usage:
+    Called when application encounters critical error or user requests immediate
+    shutdown. Registered as JVM shutdown hook to run on abnormal termination.
+    Can be triggered by pressing emergency exit button (often Ctrl+Q or dedicated
+    button in UI). Used by error handlers when recoverable solution is not possible.
+    Ensures application state is saved before exit.

@@ -5,20 +5,29 @@ import javafx.application.Application;
 
 /**
  * The Launcher class serves as the main entry point of the system.
- * It calls the launch() method of the Main class to start the JavaFX application.
- * This class is intentionally kept simple to isolate the bootstrapping logic.
  *
- * @author Shine Shan University of Brighton
- * @version 1.0
+ * UPDATED: Now launches Main which shows LOGIN FIRST
+ *
+ * Security Flow:
+ * 1. Launcher → Main.java
+ * 2. Main.java → Login screen ONLY
+ * 3. Login screen → Appropriate client after authentication
  */
-
-public class Launcher  {
+public class Launcher {
     /**
      * The main method to start the full system.
-     * It launches the Main JavaFX application.
+     * Launches Main which enforces authentication before any features load.
+     *
      * @param args Command line arguments.
      */
     public static void main(String[] args) {
-        Application.launch(Main.class, args);  // Starts the JavaFX application through Main
+        System.out.println("╔════════════════════════════════════════╗");
+        System.out.println("║     🛍️  HappyShop System Launch      ║");
+        System.out.println("╚════════════════════════════════════════╝");
+        System.out.println();
+        System.out.println("🔐 Security: Authentication Required First");
+        System.out.println();
+
+        Application.launch(Main.class, args);
     }
 }

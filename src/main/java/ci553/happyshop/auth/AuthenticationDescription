@@ -1,0 +1,105 @@
+HAPPYSHOP PROJECT - AUTHENTICATION CATEGORY
+
+Purpose :
+     Handles user authentication, authorization, and security management
+
+AuthenticationManager:
+    Purpose:
+    Central controller that manages all authentication operations in the system.
+
+    Responsibilities:
+    - Coordinates login and logout processes
+    - Validates user credentials against the database
+    - Creates and manages user sessions
+    - Verifies user permissions before granting access
+    - Handles authentication errors and exceptions
+
+    Key Methods:
+    - login(username, password): Authenticates user and creates session
+    - logout(userId): Ends user session
+    - isAuthenticated(userId): Checks if user has active session
+    - verifyPermission(userId, action): Checks if user can perform action
+
+    Usage:
+    Called by UI layer when user attempts to log in or access protected features.
+    Works with PasswordHasher to verify credentials and User/UserRole for permissions.
+
+PasswordHasher:
+    Purpose:
+    Handles password encryption and verification to ensure secure storage and
+    comparison of user passwords.
+
+    Responsibilities:
+    - Encrypts plain text passwords before storage
+    - Verifies entered passwords against stored hashes
+    - Uses secure hashing algorithms (SHA-256 or bcrypt)
+    - Adds salt to passwords for additional security
+
+    Key Methods:
+    - hashPassword(plainPassword): Converts password to secure hash
+    - verifyPassword(plainPassword, hashedPassword): Checks if passwords match
+    - generateSalt(): Creates random salt for password hashing
+
+    Usage:
+    Used by AuthenticationManager during login to verify passwords and by
+    UserManagement when creating/updating user accounts.
+
+User
+    Purpose:
+    Represents a user account in the system with credentials and profile information.
+
+    Properties:
+    - userId: Unique identifier for the user
+    - username: Login name
+    - passwordHash: Encrypted password
+    - email: User's email address
+    - role: UserRole object defining permissions
+    - createdDate: When account was created
+    - lastLogin: Last successful login timestamp
+
+    Responsibilities:
+    - Stores user account data
+    - Provides getters/setters for user properties
+    - May include validation logic for user data
+
+    Usage:
+    Created during user registration, retrieved during login, and used throughout
+    the application to identify the current user and their permissions.
+
+
+UserRole:
+    Purpose:
+        define user roles and their associated permission within the system
+
+    Role Types:
+        - CUSTOMER: Regular shopping user
+        * Can browse products
+        * Can add items to cart
+        * Can place orders
+        * Can view own order history
+
+        - STAFF: Shop employee
+          * All customer permissions
+          * Can view all orders
+          * Can update order status
+          * Can manage inventory
+
+        - ADMIN: System administrator
+          * All staff permissions
+          * Can manage user accounts
+          * Can view system logs
+          * Can configure system settings
+
+    Responsibilities:
+        -Define permission level for different user types
+        -Provides methods to check specific permission
+        -Enforces role-based access control
+
+    Key method:
+        -hassPermission(action): check if role can perform action
+        -getRoleName(): returns role type as string
+        -isCustomer(), isStaff(), isAdmin(): role checking helpers
+
+    Usage:
+        Associated with user objects to determine what action they can perform
+        checked by authenticationManager before allowing accesss to feature

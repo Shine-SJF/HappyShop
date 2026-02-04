@@ -1,0 +1,249 @@
+HappyShop project - storageAccess category:
+
+Purpose:
+       Manages all data persistence, database operations, and file storage
+       for products, orders, users, and images in the HappyShop system
+
+DatabaseMigration:
+    Purpose:
+    Manages database schema changes, version upgrades, and data migrations to keep
+    the database structure synchronized with application versions while preserving
+    existing data.
+
+    Properties:
+    - currentVersion: Current database schema version
+    - targetVersion: Version to migrate to
+    - migrationScripts: List of SQL migration scripts
+    - migrationHistory: Record of applied migrations
+    - rollbackEnabled: Whether rollback is supported
+    - backupPath: Location for database backup before migration
+    - migrationStatus: Current migration status (PENDING, IN_PROGRESS, COMPLETE, FAILED)
+
+    Responsibilities:
+    - Detects current database schema version
+    - Determines which migrations need to be applied
+    - Executes migration scripts in correct order
+    - Creates database backups before migrations
+    - Handles schema changes (add/remove tables, columns)
+    - Migrates existing data to new schema
+    - Updates version tracking table
+    - Provides rollback capability if migration fails
+    - Validates data integrity after migration
+    - Logs all migration activities
+    - Handles breaking changes gracefully
+    - Supports incremental migrations
+
+    Key Methods:
+    - getCurrentVersion(): Returns current database version
+    - checkMigrationNeeded(): Determines if migration required
+    - executeMigration(): Runs all pending migrations
+    - executeMigration(fromVersion, toVersion): Specific version migration
+    - applyMigrationScript(script): Executes single migration
+    - createBackup(): Backs up database before migration
+    - rollback(): Reverts failed migration
+    - validateMigration(): Checks migration success
+    - updateVersionTable(): Records new version
+    - getMigrationHistory(): Returns all applied migrations
+    - addMigrationScript(script): Registers new migration
+    - testMigration(): Dry-run migration without committing
+
+
+    Usage:
+    Executed during application startup to check if database needs updates. Run
+    during system upgrades to apply schema changes. Used by administrators to
+    manually trigger migrations. Ensures database structure matches application
+    requirements. Critical for system upgrades and maintenance.
+
+SetDatabase:
+    Purpose:
+    Initializes the basic database structure by creating all required tables,
+    indexes, and initial schema without authentication or security features.
+
+    Properties:
+    - databaseType: Type of database (Derby, MySQL, etc.)
+    - databasePath: File path or connection URL
+    - schemaName: Name of the database schema
+    - tableDefinitions: List of tables to create
+    - indexDefinitions: List of indexes to create
+    - initialDataScripts: Scripts to populate initial data
+    - setupStatus: Current setup status
+
+    Responsibilities:
+    - Creates database if it doesn't exist
+    - Creates all core tables:
+      * Products table (productId, name, description, price, stock, etc.)
+      * Orders table (orderId, customerId, date, status, total, etc.)
+      * OrderItems table (orderItemId, orderId, productId, quantity, price)
+      * Categories table (categoryId, name, description)
+      * Inventory table (productId, quantity, location)
+    - Creates primary keys for all tables
+    - Creates foreign key relationships
+    - Creates indexes for performance
+    - Sets up database constraints
+    - Populates initial data (categories, admin settings)
+    - Validates database structure
+    - Handles database creation errors
+    - Provides setup status reporting
+
+    Key Methods:
+    - initializeDatabase(): Creates complete database structure
+    - createProductsTable(): Creates products table
+    - createOrdersTable(): Creates orders table
+    - createOrderItemsTable(): Creates order items table
+    - createCategoriesTable(): Creates categories table
+    - createInventoryTable(): Creates inventory table
+    - createIndexes(): Creates performance indexes
+    - createForeignKeys(): Sets up referential integrity
+    - populateInitialData(): Adds default data
+    - validateSetup(): Checks database is properly set up
+    - dropDatabase(): Removes entire database (for testing)
+    - resetDatabase(): Drops and recreates clean database
+
+    Table Structure Examples:
+    Products Table:
+    - productId (INT, PRIMARY KEY)
+    - productName (VARCHAR(255))
+    - description (TEXT)
+    - price (DECIMAL(10,2))
+    - stockQuantity (INT)
+    - category (VARCHAR(100))
+    - imageUrl (VARCHAR(500))
+    - dateAdded (TIMESTAMP)
+
+    Orders Table:
+    - orderId (INT, PRIMARY KEY)
+    - customerId (INT, FOREIGN KEY)
+    - orderDate (TIMESTAMP)
+    - orderStatus (VARCHAR(50))
+    - totalAmount (DECIMAL(10,2))
+    - shippingAddress (TEXT)
+
+    Usage:
+    Called during initial application installation to set up database. Used in
+    testing to create clean database environments. Invoked when resetting system
+    to factory defaults. Provides foundation for all data operations. Must be
+    executed before application can store data.
+
+SetDatabaseWithAuth:
+    Purpose:
+    Extends basic database setup to include authentication and authorization tables,
+    user management schema, and security-related database structures.
+
+    Properties:
+    - includesUserTables: Flag indicating auth tables included
+    - defaultAdminUsername: Initial admin account username
+    - defaultAdminPassword: Initial admin account password (hashed)
+    - passwordHashAlgorithm: Algorithm for password hashing (SHA-256, bcrypt)
+    - saltLength: Length of password salt
+    - sessionTableEnabled: Whether to create sessions table
+
+    Responsibilities:
+    - Creates all tables from SetDatabase
+    - Additionally creates authentication tables:
+      * Users table (userId, username, passwordHash, email, role, etc.)
+      * UserRoles table (roleId, roleName, permissions)
+      * Sessions table (sessionId, userId, token, expiresAt)
+      * LoginHistory table (loginId, userId, timestamp, ipAddress, success)
+    - Creates security-related indexes
+    - Sets up user role relationships
+    - Creates default admin account
+    - Hashes initial admin password
+    - Sets up default user roles (CUSTOMER, STAFF, ADMIN)
+    - Creates permission structures
+    - Initializes session management tables
+    - Sets up audit logging tables
+
+    Key Methods:
+    - initializeDatabaseWithAuth(): Creates complete database with auth
+    - createUsersTable(): Creates users table
+    - createUserRolesTable(): Creates roles table
+    - createSessionsTable(): Creates sessions table
+    - createLoginHistoryTable(): Creates login audit table
+    - createDefaultAdmin(): Creates initial admin account
+    - hashPassword(password): Hashes password for storage
+    - setupDefaultRoles(): Creates CUSTOMER, STAFF, ADMIN roles
+    - setupPermissions(): Defines role permissions
+    - validateAuthSetup(): Checks auth tables are correct
+    - createSecurityIndexes(): Adds indexes for auth queries
+
+    Users Table Structure:
+    - userId (INT, PRIMARY KEY, AUTO_INCREMENT)
+    - username (VARCHAR(50), UNIQUE)
+    - passwordHash (VARCHAR(255))
+    - passwordSalt (VARCHAR(50))
+    - email (VARCHAR(255), UNIQUE)
+    - roleId (INT, FOREIGN KEY)
+    - accountLocked (BOOLEAN)
+    - failedLoginAttempts (INT)
+    - lastLogin (TIMESTAMP)
+    - createdDate (TIMESTAMP)
+
+    UserRoles Table:
+    - roleId (INT, PRIMARY KEY)
+    - roleName (VARCHAR(50))
+    - canBrowseProducts (BOOLEAN)
+    - canPlaceOrders (BOOLEAN)
+    - canManageInventory (BOOLEAN)
+    - canManageUsers (BOOLEAN)
+    - canViewReports (BOOLEAN)
+
+    Usage:
+    Called during initial installation to set up complete system with security.
+    Creates both data tables and authentication tables in one setup. Ensures
+    admin account exists for first login. Used when security features are required
+    from the start. Extends SetDatabase with authentication capabilities.
+
+SetOrderFileSystem:
+    Purpose:
+    Creates and initializes the file system directory structure for storing order
+    documents, receipts, invoices, and related files in an organized manner.
+
+    Properties:
+    - rootDirectory: Base directory for all order files
+    - receiptDirectory: Directory for customer receipts
+    - invoiceDirectory: Directory for invoices
+    - packingSlipDirectory: Directory for packing slips
+    - archiveDirectory: Directory for archived orders
+    - tempDirectory: Temporary upload directory
+    - directoryStructure: Map of all directories to create
+    - permissionsSet: Whether file permissions are configured
+
+    Responsibilities:
+    - Creates root directory for order files
+    - Creates subdirectories for each document type:
+      * /orders/receipts/
+      * /orders/invoices/
+      * /orders/packing_slips/
+      * /orders/archive/
+      * /orders/temp/
+    - Organizes directories by date (year/month structure)
+    - Sets appropriate file permissions
+    - Creates index files for quick lookup
+    - Validates directory accessibility
+    - Creates backup directories
+    - Sets up logging directory for order operations
+    - Creates template directories for document templates
+    - Verifies write permissions
+    - Creates .gitignore or similar for version control
+
+    Key Methods:
+    - initializeOrderFileSystem(): Creates all directories
+    - createReceiptDirectory(): Creates receipts folder
+    - createInvoiceDirectory(): Creates invoices folder
+    - createPackingSlipDirectory(): Creates packing slips folder
+    - createArchiveDirectory(): Creates archive folder
+    - createTempDirectory(): Creates temporary folder
+    - setDirectoryPermissions(): Configures access permissions
+    - validateFileSystem(): Checks all directories exist
+    - createDateBasedDirectories(): Creates year/month structure
+    - cleanupTempDirectory(): Removes old temporary files
+    - getDirectoryPath(type): Returns path for document type
+    - backupOrderFiles(): Creates backup of all order files
+    - verifyWriteAccess(): Tests write permissions
+
+    Usage:
+    Called during initial application installation to set up file storage. Executed
+    before OrderFileManager can store documents. Ensures organized file structure
+    exists. Creates necessary directories with proper permissions. Required for
+    order document management functionality. Run once during setup, validated on
+    each startup.

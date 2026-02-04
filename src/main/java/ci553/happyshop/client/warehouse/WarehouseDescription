@@ -1,0 +1,232 @@
+HappyShop project - client/warehouse - category
+
+Purpose:
+    manage warehouse operations, inventory monitoring, stock alerts, and provides provide staff interfacce for warehouse
+    manageement and stock control
+
+AlertSimulator
+    Purpose:
+    Represents a warehouse alert notification for low stock, out-of-stock items,
+    or other inventory-related warnings that require staff attention.
+
+    Properties:
+    - alertId: Unique identifier for the alert
+    - alertType: Type of alert (LOW_STOCK, OUT_OF_STOCK, RESTOCK_NEEDED, OVERSTOCK)
+    - productId: ID of the product triggering the alert
+    - productName: Name of the product
+    - currentStock: Current stock quantity
+    - thresholdLevel: Stock level that triggered the alert
+    - severity: Alert severity (HIGH, MEDIUM, LOW)
+    - timestamp: When alert was generated
+    - isRead: Whether staff has viewed the alert
+    - isResolved: Whether issue has been addressed
+    - message: Descriptive alert message
+    - assignedTo: Staff member assigned to handle alert
+
+    Responsibilities:
+    - Stores alert information
+    - Provides getters/setters for alert properties
+    - Determines alert priority based on severity
+    - Tracks alert lifecycle (created, read, resolved)
+    - Formats alert message for display
+
+    Usage:
+    Created by AlertSimulator when stock levels reach critical thresholds. Displayed
+    in HistoryWindow to show past alerts. Shown in StockDashboard for real-time
+    monitoring. Used by staff to track which inventory issues need attention.
+
+HistoryWindow:
+    Purpose:
+    Displays historical view of all warehouse alerts, stock changes, and inventory
+    events for audit trail and analysis purposes.
+
+    Properties:
+    - alertHistory: List of all historical alerts
+    - dateRange: Time period being displayed
+    - filterCriteria: Active filters (by product, type, severity)
+    - sortOrder: How history is sorted (by date, severity, product)
+
+    Responsibilities:
+    - Displays chronological list of past alerts
+    - Shows resolved and unresolved alerts
+    - Provides filtering by date range, product, alert type
+    - Allows sorting of alert history
+    - Shows alert details (time, product, stock level, resolution)
+    - Exports history to reports
+    - Provides search functionality
+    - Tracks who resolved each alert
+    - Shows stock level trends over time
+
+    Usage:
+    Opened by warehouse staff to review past alerts and identify patterns. Used for
+    auditing inventory management decisions. Helps analyze recurring stock issues.
+    Accessed from WarehouseView menu or dashboard. Provides data for management
+    reports.
+
+StockDashboard:
+    Purpose:
+    Provides real-time overview of warehouse inventory status with visual indicators,
+    active alerts, and key metrics for warehouse management.
+
+    Properties:
+    - activeAlerts: List of current unresolved alerts
+    - stockLevels: Current stock quantities for all products
+    - criticalItems: Products requiring immediate attention
+    - dashboardMetrics: Key statistics (total items, low stock count, etc.)
+    - refreshInterval: How often dashboard updates
+    - alertFilters: Which alert types to display
+
+    Responsibilities:
+    - Displays real-time inventory status
+    - Shows active alerts prominently
+    - Provides visual indicators (colors, graphs, charts)
+    - Displays key metrics (total products, low stock items, out of stock count)
+    - Updates automatically as new alerts arrive
+    - Allows quick navigation to problem products
+    - Shows inventory trends and graphs
+    - Provides summary of warehouse health
+    - Enables quick actions (view details, mark as resolved)
+
+    Usage:
+    Main screen for warehouse staff monitoring operations. Always visible on
+    warehouse terminals. Updates in real-time as AlertSimulator generates alerts.
+    Provides at-a-glance view of inventory health. Launch point for detailed views
+    and actions.
+
+WarehouseClient
+    Purpose:
+    Main entry point and container for the warehouse management application,
+    managing the overall warehouse staff interface and application lifecycle.
+
+    Responsibilities:
+    - Launches the warehouse application
+    - Initializes all warehouse MVC components
+    - Manages the main warehouse window/frame
+    - Handles navigation between different warehouse screens
+    - Manages application state and staff session
+    - Coordinates communication between warehouse modules
+    - Handles application shutdown and cleanup
+    - Manages access control for warehouse staff
+    - Initializes AlertSimulator background service
+
+    Usage:
+    Created and launched when warehouse staff logs in. Acts as main container for
+    all warehouse functionality. Manages transitions between dashboard, stock views,
+    history, and other screens. Maintains staff session throughout shift. Entry
+    point for warehouse application.
+
+WarehouseController:
+    Purpose:
+    Central controller that manages business logic and coordinates interactions
+    between WarehouseView, WarehouseModel, and other warehouse components.
+
+    Responsibilities:
+    - Handles user actions from WarehouseView
+    - Processes stock level updates
+    - Manages alert acknowledgment and resolution
+    - Coordinates restocking operations
+    - Handles product searches and filters
+    - Updates view based on model changes
+    - Validates staff input before processing
+    - Manages error handling and user feedback
+    - Coordinates with AlertSimulator for monitoring
+    - Processes bulk inventory operations
+
+    Usage:
+    Created by WarehouseClient during initialization. Receives all user interactions
+    from WarehouseView. Calls WarehouseModel for data operations. Updates
+    WarehouseView based on results. Acts as central coordinator for all warehouse
+    operations.
+
+WarehouseModel:
+    Purpose:
+    Manages warehouse data, inventory information, and communicates with the server
+    to retrieve stock levels, process updates, and maintain warehouse state.
+
+    Responsibilities:
+    - Stores current inventory data for all products
+    - Retrieves stock levels from database
+    - Updates stock quantities after restocking
+    - Processes inventory adjustments
+    - Maintains alert data and history
+    - Communicates with server APIs
+    - Validates inventory operations
+    - Tracks stock movements (in/out)
+    - Manages reorder points and thresholds
+    - Handles data persistence and caching
+
+    Usage:
+    Called by WarehouseController to perform data operations. Communicates with
+    server-side APIs and database. Maintains warehouse inventory state. Provides
+    data to controller which updates the view. Handles all business logic related
+    to warehouse operations.
+
+WarehouseUIStyles:
+    Purpose:
+    Defines visual styling, themes, colors, and layout constants for the warehouse
+    interface to ensure consistent UI design throughout the warehouse application.
+
+    Properties:
+    - Color scheme: Professional warehouse interface colors
+    - Alert colors: Red (critical), yellow (warning), green (ok)
+    - Font families: Clear, readable fonts for warehouse environment
+    - Font sizes: Large enough for quick reading from distance
+    - Button styles: Large buttons for touch-screen terminals
+    - Spacing constants: Generous spacing for usability
+    - Border styles: Clear borders for sections
+    - Icon sizes: Large icons for quick recognition
+    - Chart colors: Color-coded graphs and metrics
+    - Dashboard layouts: Grid-based dashboard design
+
+    Responsibilities:
+    - Provides consistent color palette for warehouse interface
+    - Defines alert color coding (red, yellow, green)
+    - Ensures visual consistency across all warehouse views
+    - Makes UI customization centralized and maintainable
+    - Supports high-contrast mode for warehouse lighting
+    - Defines layout for dashboards and data displays
+    - Provides accessibility-compliant design
+
+    Usage:
+    Used by WarehouseView to style all UI components consistently. Applied when
+    creating buttons, panels, dashboards, and alerts. Ensures entire warehouse
+    application has professional, easy-to-read appearance. Makes global style
+    changes easy.
+
+WarehouseView
+    Purpose:
+    Provides the graphical user interface for warehouse staff, displaying inventory
+    levels, alerts, stock dashboard, and all warehouse management screens.
+
+    UI Components:
+    - Stock dashboard with real-time metrics
+    - Active alerts panel with color-coded indicators
+    - Product inventory list with stock levels
+    - Search and filter controls
+    - Stock level indicators (visual bars/gauges)
+    - Restock buttons and forms
+    - Alert acknowledgment buttons
+    - History view access
+    - Charts and graphs for trends
+    - Quick action toolbar
+    - Staff menu and navigation
+
+    Responsibilities:
+    - Renders all warehouse UI screens
+    - Displays StockDashboard with real-time updates
+    - Shows active alerts with appropriate colors
+    - Provides inventory search and filtering
+    - Captures user input and actions
+    - Sends events to WarehouseController
+    - Updates display based on controller commands
+    - Applies WarehouseUIStyle to all components
+    - Provides smooth navigation between screens
+    - Shows loading states during operations
+    - Displays confirmation and error messages
+
+    Usage:
+    Created by WarehouseClient during initialization. Controlled by
+    WarehouseController. Displays all warehouse-facing screens and captures user
+    interactions. Sends events to controller. Updated by controller based on model
+    changes. Applies WarehouseUIStyle for consistent appearance. Staff's main
+    interface for warehouse operations.

@@ -1,5 +1,6 @@
 package ci553.happyshop.client.customer;
 
+import ci553.happyshop.catalogue.Product;
 import java.io.IOException;
 import java.sql.SQLException;
 
@@ -26,4 +27,11 @@ public class CustomerController {
         }
     }
 
+    // This method name must match what CustomerView is calling
+    public void changeQuantity(Product product, int delta) throws SQLException, IOException {
+        if (cusModel != null) {
+            // Call the model's method (note: it's changeProductQuantity, not changeQuantity)
+            cusModel.changeProductQuantity(product, delta);
+        }
+    }
 }

@@ -1,0 +1,244 @@
+HappyShop - project - client/customer - category
+
+purpose:
+    manages the customer - facing client application, providing the main shopping interface following MCV pattern  with customer UI styling
+
+CustomerClient:
+    Purpose:
+    Provides the graphical user interface for new user registration, allowing
+    users to create new accounts in the system.
+
+    UI Components:
+    - Username text field
+    - Email text field
+    - Password text field (with masked input)
+    - Confirm Password text field
+    - First Name text field
+    - Last Name text field
+    - "Create Account" / "Register" button
+    - "Back to Login" button/link
+    - Terms and Conditions checkbox
+    - Error/validation message labels
+    - Success message display
+
+    Responsibilities:
+    - Displays registration form to user
+    - Captures new user information
+    - Performs client-side validation (password match, email format, etc.)
+    - Sends registration data to controller
+    - Displays validation errors inline
+    - Shows success message after registration
+    - Provides password strength indicator
+    - Implements UI styling and layout
+    - Handles form submission
+
+    Key Methods:
+    - displayRegistrationForm(): Renders the registration interface
+    - getUsername(): Retrieves entered username
+    - getEmail(): Retrieves entered email
+    - getPassword(): Retrieves entered password
+    - getConfirmPassword(): Retrieves password confirmation
+    - showError(field, message): Displays field-specific error
+    - clearErrors(): Removes all error messages
+    - validateEmail(email): Checks email format
+    - validatePasswordMatch(): Checks if passwords match
+    - showSuccess(message): Displays registration success
+    - clearFields(): Clears all input fields
+    - navigateToLogin(): Returns to login screen
+
+    Usage:
+    Created when user clicks "Sign Up" from LoginView. May have its own
+    controller (RegisterController) or share LoginController. Validates input
+    before sending to server. Shows success message and redirects to LoginView
+    after successful registration. Provides user-friendly error messages for
+    validation failures.
+
+CustomerController:
+    Purpose:
+    Central controller that manages business logic and coordinates interactions
+    between CustomerView, CustomerModel, and other components in the customer
+    application.
+
+    Responsibilities:
+    - Handles user actions from CustomerView
+    - Processes shopping cart operations (add, remove, update items)
+    - Manages product browsing and search requests
+    - Coordinates order placement process
+    - Handles checkout workflow
+    - Updates view based on model changes
+    - Validates user input before processing
+    - Manages error handling and user feedback
+    - Coordinates with server for data operations
+
+    Key Methods:
+    - handleAddToCart(productId, quantity): Adds product to cart
+    - handleRemoveFromCart(productId): Removes product from cart
+    - handleUpdateQuantity(productId, newQuantity): Updates cart item quantity
+    - handleProductSearch(keyword): Searches for products
+    - handleCategoryFilter(category): Filters by category
+    - handleCheckout(): Initiates checkout process
+    - handlePlaceOrder(): Finalizes order placement
+    - handleViewOrderHistory(): Retrieves customer's past orders
+    - handleViewProductDetails(productId): Shows product information
+    - updateCartDisplay(): Refreshes cart view
+    - calculateCartTotal(): Computes total cart value
+    - validateCheckout(): Ensures cart and shipping info are valid
+
+    Usage:
+    Created by CustomerClient during initialization. Receives all user interactions
+    from CustomerView. Calls CustomerModel for data operations. Updates CustomerView
+    based on results. Acts as the central coordinator for all customer operations.
+
+CustomerModel:
+    Purpose:
+    Manages customer data, shopping cart state, and communicates with the server
+    to retrieve products, process orders, and maintain customer information.
+
+    Responsibilities:
+    - Stores current shopping cart items
+    - Maintains customer profile information
+    - Communicates with server APIs (catalog, orders, payment)
+    - Retrieves product information from server
+    - Processes order submissions
+    - Manages customer session data
+    - Handles data persistence and caching
+    - Validates business rules before operations
+    - Manages inventory availability checks
+
+    Key Methods:
+    - getProducts(): Retrieves product list from server
+    - getProductById(productId): Gets specific product details
+    - searchProducts(keyword): Searches product catalog
+    - getCart(): Returns current shopping cart
+    - addToCart(product, quantity): Adds item to cart
+    - removeFromCart(productId): Removes item from cart
+    - updateCartQuantity(productId, quantity): Updates item quantity
+    - clearCart(): Empties shopping cart
+    - getCartTotal(): Calculates total cart value
+    - getCartItemCount(): Returns number of items in cart
+    - submitOrder(orderDetails): Sends order to server
+    - getOrderHistory(): Retrieves customer's past orders
+    - getCustomerProfile(): Returns customer information
+    - updateProfile(profileData): Updates customer details
+    - checkStockAvailability(productId, quantity): Verifies stock
+
+    Usage:
+    Called by CustomerController to perform data operations. Communicates with
+    server-side APIs. Maintains shopping cart state throughout session. Provides
+    data to controller which then updates the view. Handles all business logic
+    related to customer operations.
+
+CustomerUIStyle:
+    Purpose:
+    Defines the visual styling, themes, colors, and layout constants for the
+    customer interface to ensure consistent UI design throughout the application.
+
+    Style Properties:
+    - Color scheme: Primary, secondary, accent colors
+    - Font families: Headings, body text, buttons
+    - Font sizes: Large (headings), medium (body), small (captions)
+    - Button styles: Primary, secondary, danger (remove from cart)
+    - Spacing constants: Margins, padding, gaps
+    - Border styles: Radius, width, colors
+    - Icon sizes and styles
+    - Background colors and gradients
+    - Hover and active states
+    - Responsive breakpoints (if applicable)
+
+    Responsibilities:
+    - Provides consistent color palette across all views
+    - Defines standard component styles (buttons, inputs, cards)
+    - Ensures visual consistency and branding
+    - Makes UI customization centralized and maintainable
+    - Supports theme switching (light/dark mode) if implemented
+    - Defines layout grid and spacing system
+    - Provides accessibility-compliant color contrast
+
+    Key Constants/Methods:
+    - PRIMARY_COLOR: Main brand color
+    - SECONDARY_COLOR: Supporting color
+    - ACCENT_COLOR: Highlight color
+    - BACKGROUND_COLOR: Main background
+    - TEXT_COLOR: Default text color
+    - ERROR_COLOR: Error messages (usually red)
+    - SUCCESS_COLOR: Success messages (usually green)
+    - BUTTON_STYLE: Standard button appearance
+    - HEADING_FONT: Font for headings
+    - BODY_FONT: Font for regular text
+    - SPACING_SMALL, SPACING_MEDIUM, SPACING_LARGE: Standard spacing units
+    - BORDER_RADIUS: Rounded corner radius
+    - applyButtonStyle(button): Applies standard button styling
+    - applyCardStyle(panel): Applies card/panel styling
+    - applyInputStyle(textField): Applies input field styling
+
+    Usage:
+    Used by CustomerView to style all UI components consistently. Applied when
+    creating buttons, panels, labels, and other UI elements. Ensures the entire
+    customer application has a cohesive look and feel. Makes global style changes
+    easy by updating values in one place.
+
+CustomerView:
+    Purpose:
+    Provides the graphical user interface for the customer application, displaying
+    products, shopping cart, orders, and all customer-facing screens.
+
+    Main UI Sections:
+    - Header: Logo, search bar, cart icon with item count, user menu
+    - Navigation: Category menu, home, orders, profile links
+    - Product Catalog: Grid/list of products with images and prices
+    - Product Detail: Detailed view of selected product
+    - Shopping Cart: List of items in cart with quantities and totals
+    - Checkout: Shipping and payment information forms
+    - Order History: List of past orders with status
+    - Footer: Links, contact info, copyright
+
+    UI Components:
+    - Product cards with image, name, price, "Add to Cart" button
+    - Search bar with auto-suggestions
+    - Category filter dropdown/menu
+    - Shopping cart panel with item list and total
+    - Quantity selectors (+ and - buttons)
+    - "Remove" buttons for cart items
+    - Checkout form fields
+    - Order summary display
+    - Loading indicators
+    - Error/success message notifications
+
+    Responsibilities:
+    - Renders all customer UI screens
+    - Displays product catalog with filters
+    - Shows shopping cart with current items
+    - Provides checkout interface
+    - Displays order history and details
+    - Captures user input and actions
+    - Sends events to CustomerController
+    - Updates display based on controller commands
+    - Applies CustomerUIStyle to all components
+    - Provides smooth navigation between screens
+    - Shows loading states during operations
+    - Displays error and success messages
+
+    Key Methods:
+    - displayProductCatalog(products): Shows product grid
+    - displayProductDetails(product): Shows detailed product view
+    - displayShoppingCart(cart): Renders cart items
+    - displayCheckoutForm(): Shows checkout screen
+    - displayOrderHistory(orders): Shows past orders
+    - updateCartIcon(itemCount): Updates cart badge with count
+    - showProductAddedMessage(): Confirms item added to cart
+    - showError(message): Displays error notification
+    - showSuccess(message): Displays success notification
+    - showLoading(): Shows loading indicator
+    - hideLoading(): Hides loading indicator
+    - refreshCartDisplay(): Updates cart view
+    - highlightProduct(productId): Highlights a product (e.g., in search)
+    - clearSearchResults(): Clears search display
+    - enableCheckoutButton(enabled): Enables/disables checkout
+    - updateTotalDisplay(total): Updates cart total amount
+
+    Usage:
+    Created by CustomerClient during initialization. Controlled by CustomerController.
+    Displays all customer-facing screens and captures user interactions. Sends
+    events (button clicks, searches) to controller. Updated by controller based on
+    model changes. Applies CustomerUIStyle for consistent appearance. User's main
+    interface for shopping experience.

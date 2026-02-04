@@ -2,9 +2,7 @@ package ci553.happyshop.client.warehouse;
 
 import ci553.happyshop.catalogue.Product;
 import ci553.happyshop.utility.StorageLocation;
-import ci553.happyshop.utility.UIStyle;
 import ci553.happyshop.utility.WinPosManager;
-import ci553.happyshop.utility.WindowBounds;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -15,7 +13,6 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -26,77 +23,37 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import javafx.geometry.Insets;
 import javafx.scene.input.MouseEvent;
-/**
- * Some emojis used in the UI. If the emoji does not work on your OS,
- * please change them to their unique Unicode codes.
- * 🔍 (Search): \uD83D\uDD0D
- * ➕ (Plus): \u2795
- * ➖ (Minus): \u2796
- * 🛒 (Shopping Cart): \uD83D\uDED2
- * 🏬 (Department Store): \uD83C\uDFEC
- *
- * eg Button btnSearch = new Button("\uD83D\uDD0D");
- *    Button btnSearch = new Button("🔍");
- *    case "\uD83D\uDD0D",
- *    case "🔍"
- */
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 
 /**
- * The Warehouse interface (WarehouseView) contains two main pages:
- * a divider line is between the two pages
- * 1. Search Page:
- *    - The key data model for the search page is an observable product list.
- *    - This list is updated by the model when searching the database.
- *    - A ListView observes the product list. Whenever the list changes,
- *      the ListView automatically updates itself based on the specified cell factory.
- *
- * 2. Product Form Page:
- *    - The form page contains a ComboBox for selecting between two actions:
- *      * Editing an existing product
- *      * Adding a new product to stock
- *    - Based on the ComboBox selection, one of two VBoxes will be shown:
- *      * EditProductVBox (for editing existing products), referred to as **EditChild** in the code
- *      * NewProductVBox (for adding new products), referred to as **NewProChild** in the code
- *    - Only one VBox (EditChild or NewProChild) is active and visible at a time, depending on the selected action.
+ * - Clean, professional interface for warehouse management
+ * - Consistent styling with modern design patterns
+ * - All inline styles replaced with centralized style system
  */
-
-public class WarehouseView  {
-    private final int WIDTH = UIStyle.warehouseWinWidth;
-    private final int HEIGHT = UIStyle.warehouseWinHeight;
-    private final int COLUMN_WIDTH = WIDTH / 2 - 10;
+public class WarehouseView {
+    private final int WIDTH = 1400;
+    private final int HEIGHT = 850;
+    private final int COLUMN_WIDTH = (WIDTH / 2) - 30;
 
     public WarehouseController controller;
     private Stage viewWindow;
-    /** A reference to the main window that is used to get its bounds (position and size).
-     * This allows us to position other windows (like the History window or alert) relative to the Warehouse window.
-     * It helps in keeping the UI layout consistent by placing new windows near the Warehouse window.
-     */
+    private Scene mainScene;
 
-    //some elements in searchPage
-    TextField tfSearchKeyword; //user typing in it
-    private Label laSearchSummary; //eg. the lable shows "3 products found" after search
-    private ObservableList<Product> obeProductList; //observable product list
-    ListView<Product> obrLvProducts; //A ListView observes the product list
+    // Search Page Components
+    TextField tfSearchKeyword;
+    private Label laSearchSummary;
+    private ObservableList<Product> obeProductList;
+    ListView<Product> obrLvProducts;
 
-    //ProductFormPage:has two children at a time,
-    ComboBox<String> cbProductFormMode; //the first child
-    private VBox vbEditProduct; //the seceond child
-    private VBox vbNewProduct; //another second child
-    String theProFormMode ="EDIT";
-    /** productFormPage has two children at a time,
-     * 1. cbProductFormMode: A ComboBox that holds two action types for the product form:
-     *    - "EDIT": For editing an existing product
-     *    - "NEW": For adding a new product to stock
-     * The action mode (either "EDIT" or "NEW") is stored in the 'theProFormMode' variable to keep track of the current mode.
-     *
-     * The following two second childeren swap based on the selected value of the ComboBox:
-     * 2. vbEditProduct: contains the UI elements for editing an existing product (visible when "EDIT" is selected)
-     * 2. vbNewProduct: contains the UI elements for adding a new product to stock (visible when "NEW" is selected)
-     */
+    // Product Form Components
+    ComboBox<String> cbProductFormMode;
+    private VBox vbEditProduct;
+    private VBox vbNewProduct;
+    String theProFormMode = "EDIT";
 
-    //some elements in vbEditProduct, we need to getValue from them and setValue for them
+    // Edit Product Components
     private TextField tfIdEdit;
     TextField tfPriceEdit;
     TextField tfStockEdit;
@@ -105,110 +62,190 @@ public class WarehouseView  {
     private ImageView ivProEdit;
     String userSelectedImageUriEdit;
     boolean isUserSelectedImageEdit = false;
-    /** userSelectedImageUriEdit: URI of the image selected by the user during editing.
-     * This value is retrieved from the image chooser when the user selects or changes the image for an existing product.
-     *
-     * isUserSelectedImageEdit: A flag indicating if the user has selected a new image for editing an existing product.
-     * This helps the model determine if the old image should be deleted and the new image copied to the destination folder.
-     */
     private Button btnAdd;
     private Button btnSub;
     private Button btnCancelEdit;
     private Button btnSubmitEdit;
-    /** Normally, buttons are not kept as instance variables. However, in this case,
-     * btnAdd, btnSub, btnCancelEdit, and btnSubmitEdit:
-     * They are kept as instance variables to manage their states (enabled/disabled) when necessary,
-     * eg. when the Cancel or Submit buttons are clicked, to prevent unintended interactions.
-     */
 
-    //some elements in vbNewProduct,we need to getValue from them and setValue for them
+    // New Product Components
     TextField tfIdNewPro;
     TextField tfPriceNewPro;
     TextField tfStockNewPro;
     TextArea taDescriptionNewPro;
     private ImageView ivProNewPro;
-    String imageUriNewPro; //user slected image Uri
-    // URI of the image selected by the user for a new product. This value is retrieved from the image chooser.
+    String imageUriNewPro;
+
+    // Stock Dashboard
+    private StockDashboard stockDashboard;
+
+    // Reference to UI Styles
+    private static final WarehouseUIStyles.Colors COLORS = new WarehouseUIStyles.Colors();
+    private static final WarehouseUIStyles.Typography TYPO = new WarehouseUIStyles.Typography();
+    private static final WarehouseUIStyles.Spacing SPACE = new WarehouseUIStyles.Spacing();
+    private static final WarehouseUIStyles.Borders BORDERS = new WarehouseUIStyles.Borders();
+    private static final WarehouseUIStyles.Components COMPS = new WarehouseUIStyles.Components();
 
     public void start(Stage window) {
-        VBox vbSearchPage = createSearchPage();
-        VBox vbProductFormPage = createProductFormPage();
+        VBox vbSearchPage = createModernSearchPage();
+        VBox vbProductFormPage = createModernProductFormPage();
 
-        // Divider line between SearchPage and ProductFormPage
+        // Modern divider
         Line line = new Line(0, 0, 0, HEIGHT);
-        line.setStrokeWidth(4);
-        line.setStroke(Color.LIGHTGREEN);
+        line.setStyle(COMPS.getDivider());
         VBox lineContainer = new VBox(line);
         lineContainer.setPrefWidth(4);
         lineContainer.setAlignment(Pos.CENTER);
 
-        //top level layout manager
+        // Main layout
         HBox hbRoot = new HBox(15, vbSearchPage, lineContainer, vbProductFormPage);
-        hbRoot.setStyle(UIStyle.rootStyleWarehouse);
+        hbRoot.setStyle(COMPS.getRootStyle());
 
-        Scene scene = new Scene(hbRoot, WIDTH, HEIGHT);
-        window.setScene(scene);
-        window.setTitle("Search_Page  🛒🛒HappyShop_Warehouse🛒🛒  ProductForm_Page(Edit & AddNew Product)");
-        WinPosManager.registerWindow(window,WIDTH,HEIGHT); // Registers the window with WinPosManager to
-        // dynamically position itself based on its size, and any already displayed windows.
+        mainScene = new Scene(hbRoot, WIDTH, HEIGHT);
+        window.setScene(mainScene);
+        window.setTitle("🏭 HappyShop Warehouse | Product Management System");
+
+        WinPosManager.registerWindow(window, WIDTH, HEIGHT);
         window.show();
-        viewWindow = window; // Sets the global viewWindow reference to this window for future reference and management.
+        viewWindow = window;
+
+        // Initialize Stock Dashboard
+        stockDashboard = new StockDashboard(this);
     }
 
-    private VBox createSearchPage() {
-        Label laTitle = new Label("Search by product ID/Name");
-        laTitle.setStyle(UIStyle.labelTitleStyle);
+    // ==================== SEARCH PAGE ====================
+    private VBox createModernSearchPage() {
+        VBox container = new VBox(SPACE.LG);
+        container.setPrefWidth(COLUMN_WIDTH);
+        container.setStyle(String.format("-fx-padding: %fpx;", SPACE.MD));
+
+        // Header
+        HBox header = createSearchHeader();
+
+        // Search section
+        VBox searchSection = createSearchSection();
+
+        // Results section
+        VBox resultsSection = createResultsSection();
+
+        container.getChildren().addAll(header, searchSection, resultsSection);
+        return container;
+    }
+
+    private HBox createSearchHeader() {
+        HBox header = new HBox(SPACE.MD);
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        // Title with icon
+        Label title = new Label("🔍 Product Search");
+        title.setStyle(COMPS.getHeading2());
+
+        // Spacer
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        // Warehouse badge
+        Label badge = new Label("Warehouse Management");
+        badge.setStyle(String.format(
+                "-fx-font-size: 12px; " +
+                        "-fx-font-weight: 600; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-background-color: %s; " +
+                        "-fx-padding: 4px 12px; " +
+                        "-fx-background-radius: 12px;",
+                COLORS.PRIMARY
+        ));
+
+        header.getChildren().addAll(title, spacer, badge);
+        return header;
+    }
+
+    private VBox createSearchSection() {
+        VBox searchCard = new VBox(SPACE.MD);
+        searchCard.setStyle(String.format(
+                "-fx-background-color: %s; " +
+                        "-fx-border-color: %s; " +
+                        "-fx-border-width: 1px; " +
+                        "-fx-border-radius: %fpx; " +
+                        "-fx-background-radius: %fpx; " +
+                        "-fx-padding: %fpx;",
+                COLORS.SURFACE, COLORS.BORDER, BORDERS.LG, BORDERS.LG, SPACE.LG
+        ));
+
+        // Search input
+        Label searchLabel = new Label("Search by Product ID or Name");
+        searchLabel.setStyle(COMPS.getBodyText());
 
         tfSearchKeyword = new TextField();
-        tfSearchKeyword.setStyle(UIStyle.textFiledStyle);
-        tfSearchKeyword.setOnAction(actionEvent -> {
-            try {
-                controller.process("🔍");  //pressing enter can also do search
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        Button btnSearch = new Button("🔍");
-        //Button btnSearch = new Button("\uD83D\uDD0D"); // Unicode for 🔍
+        tfSearchKeyword.setPromptText("Enter product ID or name...");
+        tfSearchKeyword.setStyle(COMPS.getTextField());
+        tfSearchKeyword.setOnAction(e -> performSearch());
+        setupTextFieldHover(tfSearchKeyword);
+
+        // Button row
+        HBox buttonRow = new HBox(SPACE.SM);
+        buttonRow.setAlignment(Pos.CENTER_LEFT);
+
+        Button btnSearch = new Button("🔎 Search");
+        btnSearch.setStyle(COMPS.getSearchButton());
         btnSearch.setOnAction(this::buttonClick);
-        btnSearch.setStyle(UIStyle.buttonStyle);
-        HBox hbSearch = new HBox(10, tfSearchKeyword, btnSearch);
-        hbSearch.setAlignment(Pos.CENTER);
+        setupButtonHover(btnSearch, COLORS.PRIMARY, COLORS.PRIMARY_DARK);
 
-        laSearchSummary = new Label("Search Summary");
-        laSearchSummary.setStyle(UIStyle.labelStyle);
-        Button btnEdit = new Button("Edit");
-        btnEdit.setStyle(UIStyle.greenFillBtnStyle);
+        Button btnDashboard = new Button("📊 Dashboard");
+        btnDashboard.setStyle(COMPS.getInfoButton());
+        btnDashboard.setOnAction(e -> showStockDashboard());
+        setupButtonHover(btnDashboard, COLORS.INFO, WarehouseUIStyles.darkenColor(COLORS.INFO, 0.15));
+
+        buttonRow.getChildren().addAll(btnSearch, btnDashboard);
+
+        searchCard.getChildren().addAll(searchLabel, tfSearchKeyword, buttonRow);
+        return searchCard;
+    }
+
+    private VBox createResultsSection() {
+        VBox resultsCard = new VBox(SPACE.MD);
+        resultsCard.setStyle(String.format(
+                "-fx-background-color: %s; " +
+                        "-fx-border-color: %s; " +
+                        "-fx-border-width: 1px; " +
+                        "-fx-border-radius: %fpx; " +
+                        "-fx-background-radius: %fpx; " +
+                        "-fx-padding: %fpx;",
+                COLORS.SURFACE, COLORS.BORDER, BORDERS.LG, BORDERS.LG, SPACE.MD
+        ));
+
+        // Results header
+        HBox resultsHeader = new HBox(SPACE.MD);
+        resultsHeader.setAlignment(Pos.CENTER_LEFT);
+
+        laSearchSummary = new Label("No search performed yet");
+        laSearchSummary.setStyle(String.format(
+                "-fx-font-size: %fpx; " +
+                        "-fx-font-weight: %s; " +
+                        "-fx-text-fill: %s;",
+                TYPO.BODY, TYPO.SEMIBOLD, COLORS.TEXT_SECONDARY
+        ));
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Button btnEdit = new Button("✏️ Edit");
+        btnEdit.setStyle(COMPS.getSuccessButton());
         btnEdit.setOnAction(this::buttonClick);
+        setupButtonHover(btnEdit, COLORS.SUCCESS, COLORS.SUCCESS_DARK);
 
-        Button btnDelete = new Button("Delete");
-        btnDelete.setStyle(UIStyle.grayFillBtnStyle);
+        Button btnDelete = new Button("🗑️ Delete");
+        btnDelete.setStyle(COMPS.getErrorButton());
         btnDelete.setOnAction(this::buttonClick);
+        setupButtonHover(btnDelete, COLORS.ERROR, COLORS.ERROR_DARK);
 
-        HBox hbLaBtns = new HBox(10, laSearchSummary, btnEdit,btnDelete);
-        hbLaBtns.setAlignment(Pos.CENTER);
-        hbLaBtns.setPadding(new Insets(5)); //setPadding only works on Layout manager
-        //hbLaBtns.setStyle("-fx-padding: 5px;"); //setStyle works on any Node (eg. layout manager, controls)
+        resultsHeader.getChildren().addAll(laSearchSummary, spacer, btnEdit, btnDelete);
 
-        // data, an observable ArrayList, observed by obrLvProducts
+        // List view
         obeProductList = FXCollections.observableArrayList();
-        obrLvProducts = new ListView<>(obeProductList);//ListView proListView observes proList
-        obrLvProducts.setPrefHeight(HEIGHT - 100);
-        obrLvProducts.setFixedCellSize(50);
-        obrLvProducts.setStyle(UIStyle.listViewStyle);
+        obrLvProducts = new ListView<>(obeProductList);
+        obrLvProducts.setPrefHeight(HEIGHT - 300);
+        obrLvProducts.setStyle(COMPS.getListView());
 
-        VBox vbSearchResult = new VBox(5,hbLaBtns, obrLvProducts);
-
-        /**
-         * When is setCellFactory() Needed?
-         * If you want to customize each row’s content (e.g.,images, buttons, labels, etc.).
-         * If you need special formatting (like colors or borders).
-         *
-         * When is setCellFactory() NOT Needed?
-         * Each row is just plain text without images or formatting.
-         */
         obrLvProducts.setCellFactory(param -> new ListCell<Product>() {
             @Override
             protected void updateItem(Product product, boolean empty) {
@@ -216,246 +253,446 @@ public class WarehouseView  {
 
                 if (empty || product == null) {
                     setGraphic(null);
-                    System.out.println("setCellFactory - empty item");
+                    setText(null);
                 } else {
-                    String imageName = product.getProductImageName(); // Get image name (e.g. "0001.jpg")
-                    String relativeImageUrl = StorageLocation.imageFolder + imageName;
-                    // Get the full absolute path to the image
-                    Path imageFullPath = Paths.get(relativeImageUrl).toAbsolutePath();
-                    String imageFullUri = imageFullPath.toUri().toString();// Build the full image Uri
-
-                    ImageView ivPro;
-                    try {
-                        ivPro = new ImageView(new Image(imageFullUri, 50,45, true,true)); // Attempt to load the product image
-                    } catch (Exception e) {
-                        // If loading fails, use a default image directly from the resources folder
-                        ivPro = new ImageView(new Image("imageHolder.jpg",50,45,true,true)); // Directly load from resources
-                    }
-
-                    Label laProToString = new Label(product.toString()); // Create a label for product details
-                    HBox hbox = new HBox(10, ivPro, laProToString); // Put ImageView and label in a horizontal layout
-                    setGraphic(hbox);  // Set the whole row content
+                    setGraphic(createProductListItem(product));
+                    setText(null);
                 }
             }
         });
 
-        VBox vbSearchPage = new VBox(10, laTitle, hbSearch, vbSearchResult);
-
-        vbSearchPage.setPrefWidth(COLUMN_WIDTH-10);
-        vbSearchPage.setAlignment(Pos.TOP_CENTER);
-
-        return vbSearchPage;
-
-        /** NOTE for make image
-         * user selected image at runtime, like with a FileChooser, you cannot use getResource().
-         * getResource() is only for static files already bundled inside app.
-         * User-selected files are real files on the computer, not inside the app resources.
-         */
+        resultsCard.getChildren().addAll(resultsHeader, obrLvProducts);
+        return resultsCard;
     }
 
-    private VBox createProductFormPage() {
+    private HBox createProductListItem(Product product) {
+        HBox itemCard = new HBox(SPACE.MD);
+        itemCard.setAlignment(Pos.CENTER_LEFT);
+        itemCard.setStyle(String.format(
+                "-fx-padding: %fpx; " +
+                        "-fx-border-color: %s; " +
+                        "-fx-border-width: 0 0 1 0;",
+                SPACE.SM, COLORS.DIVIDER
+        ));
+
+        // Product image
+        String imageName = product.getProductImageName();
+        String relativeImageUrl = StorageLocation.imageFolder + imageName;
+        Path imageFullPath = Paths.get(relativeImageUrl).toAbsolutePath();
+        String imageFullUri = imageFullPath.toUri().toString();
+
+        ImageView ivPro;
+        try {
+            ivPro = new ImageView(new Image(imageFullUri, 60, 60, true, true));
+        } catch (Exception e) {
+            ivPro = new ImageView(new Image("imageHolder.jpg", 60, 60, true, true));
+        }
+        ivPro.setStyle(String.format(
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 4, 0, 0, 2); " +
+                        "-fx-background-radius: %fpx;",
+                BORDERS.MD
+        ));
+
+        // Product info
+        VBox infoBox = new VBox(SPACE.XS);
+        Label idLabel = new Label("ID: " + product.getProductId());
+        idLabel.setStyle(String.format(
+                "-fx-font-size: %fpx; " +
+                        "-fx-font-weight: %s; " +
+                        "-fx-text-fill: %s;",
+                TYPO.BODY, TYPO.BOLD, COLORS.TEXT_PRIMARY
+        ));
+
+        Label nameLabel = new Label(product.getProductDescription());
+        nameLabel.setStyle(COMPS.getBodyText());
+        nameLabel.setWrapText(true);
+        nameLabel.setMaxWidth(300);
+
+        Label priceLabel = new Label(String.format("Price: £%.2f", product.getUnitPrice()));
+        priceLabel.setStyle(String.format(
+                "-fx-font-size: %fpx; " +
+                        "-fx-text-fill: %s;",
+                TYPO.BODY_SMALL, COLORS.TEXT_SECONDARY
+        ));
+
+        infoBox.getChildren().addAll(idLabel, nameLabel, priceLabel);
+
+        // Stock badge
+        Label stockLabel = new Label(String.format("Stock: %d", product.getStockQuantity()));
+        stockLabel.setStyle(String.format(
+                "-fx-font-size: %fpx; " +
+                        "-fx-font-weight: %s; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-background-color: %s; " +
+                        "-fx-padding: 4px 12px; " +
+                        "-fx-background-radius: 12px;",
+                TYPO.BODY_SMALL, TYPO.BOLD,
+                product.getStockQuantity() > 20 ? COLORS.STOCK_HIGH :
+                        product.getStockQuantity() > 10 ? COLORS.STOCK_MEDIUM :
+                                product.getStockQuantity() > 0 ? COLORS.STOCK_LOW : COLORS.STOCK_CRITICAL
+        ));
+
+        itemCard.getChildren().addAll(ivPro, infoBox, stockLabel);
+        return itemCard;
+    }
+
+    // ==================== PRODUCT FORM PAGE ====================
+    private VBox createModernProductFormPage() {
+        VBox container = new VBox(SPACE.LG);
+        container.setPrefWidth(COLUMN_WIDTH + 20);
+        container.setStyle(String.format("-fx-padding: %fpx;", SPACE.MD));
+
+        // Mode selector
         cbProductFormMode = new ComboBox<>();
-        cbProductFormMode.setStyle(UIStyle.comboBoxStyle);
-        cbProductFormMode.getItems().addAll("Edit Existing Product in Stock", "Add New Product to Stock");
-        // Set default selected value, so only when value changed trigger setOnAction
-        cbProductFormMode.setValue("Edit Existing Product in Stock");
+        cbProductFormMode.setStyle(COMPS.getComboBox());
+        cbProductFormMode.getItems().addAll(
+                "✏️ Edit Existing Product",
+                "➕ Add New Product"
+        );
+        cbProductFormMode.setValue("✏️ Edit Existing Product");
 
-        vbEditProduct = createEditProdcutChild();
-        disableEditProductChild(true); //disable editable component until user selects a product and cilck btnEdit
-        vbNewProduct = createNewProductChild();
+        vbEditProduct = createModernEditForm();
+        disableEditProductChild(true);
+        vbNewProduct = createModernNewProductForm();
 
-        // Initially set the second child (after ComboBox) to editProduct
-        VBox vbProductFormPage = new VBox(10, cbProductFormMode, vbEditProduct);
+        VBox formContainer = new VBox(SPACE.MD, cbProductFormMode, vbEditProduct);
 
-        // Check selected value and place the corerect child
-        //isImageNameEditable for imageChooser using a single method to differciate from edit/add product
-        cbProductFormMode.setOnAction(actionEvent -> {
-            if (cbProductFormMode.getValue().equals("Edit Existing Product in Stock")) {
-                vbProductFormPage.getChildren().set(1,vbEditProduct);
+        cbProductFormMode.setOnAction(e -> {
+            if (cbProductFormMode.getValue().contains("Edit")) {
+                formContainer.getChildren().set(1, vbEditProduct);
                 theProFormMode = "EDIT";
-            }
-            if (cbProductFormMode.getValue().equals("Add New Product to Stock")) {
-                vbProductFormPage.getChildren().set(1,vbNewProduct);
+            } else {
+                formContainer.getChildren().set(1, vbNewProduct);
                 theProFormMode = "NEW";
             }
         });
 
-        vbProductFormPage.setPrefWidth(COLUMN_WIDTH+20);
-        vbProductFormPage.setAlignment(Pos.TOP_CENTER);
-        return vbProductFormPage;
+        container.getChildren().add(formContainer);
+        return container;
     }
 
+    private VBox createModernEditForm() {
+        VBox form = new VBox(SPACE.LG);
+        form.setStyle(COMPS.getEditFormStyle());
 
-    private VBox createEditProdcutChild() {
-        //HBox for Id Label and TextField
-        Label laId = new Label("ID"+" ".repeat(8));
-        laId.setStyle(UIStyle.labelStyle);
-        tfIdEdit = new TextField();
-        tfIdEdit.setEditable(false);
-        tfIdEdit.setStyle("-fx-font-size: 14px; -fx-pref-width: 100px;");
-        HBox hbId = new HBox(10, laId, tfIdEdit);
-        hbId.setAlignment(Pos.CENTER_LEFT);
+        // Form title
+        Label title = new Label("✏️ Edit Product Details");
+        title.setStyle(COMPS.getHeading3());
 
-        // HBox for Price Label and TextField
-        Label laPrice = new Label("Price_£");
-        laPrice.setStyle(UIStyle.labelStyle);
-        tfPriceEdit = new TextField();
-        tfPriceEdit.setStyle("-fx-font-size: 14px; -fx-pref-width: 100px;");
-        HBox hbPrice = new HBox(10, laPrice, tfPriceEdit);
-        hbPrice.setAlignment(Pos.CENTER_LEFT);
+        // ID and Price row
+        HBox idPriceRow = new HBox(SPACE.MD);
+        VBox idBox = createFormField("Product ID", tfIdEdit = new TextField(), true);
+        VBox priceBox = createFormField("Price (£)", tfPriceEdit = new TextField(), false);
+        idPriceRow.getChildren().addAll(idBox, priceBox);
 
-        //VBox for id and price
-        VBox vbIdPrice = new VBox(10, hbId, hbPrice);
+        // Stock management
+        VBox stockBox = createStockManagementSection();
 
-        // Product Image
-        ivProEdit = new ImageView("WarehouseImageHolder.jpg");
-        ivProEdit.setFitWidth(100);
-        ivProEdit.setFitHeight(70);
-        ivProEdit.setPreserveRatio(true); //Image keeps its original shape and fits inside 100×70
-        ivProEdit.setSmooth(true);//make it smooth and nice-looking
+        // Image section
+        VBox imageSection = createImageSection(true);
 
-        // Image Click Event (Open File Chooser)
-        ivProEdit.setOnMouseClicked(this::imageChooser);
+        // Description
+        Label desLabel = new Label("Description");
+        desLabel.setStyle(COMPS.getLabelStyle());
+        taDescriptionEdit = new TextArea();
+        taDescriptionEdit.setPrefHeight(80);
+        taDescriptionEdit.setWrapText(true);
+        taDescriptionEdit.setStyle(COMPS.getTextArea());
+        VBox descBox = new VBox(SPACE.XS, desLabel, taDescriptionEdit);
 
-        // HBox for Id, Price, and Image in one row
-        HBox hbIdPriceImage = new HBox(20, vbIdPrice, ivProEdit);
-        hbIdPriceImage.setAlignment(Pos.CENTER_LEFT);
+        // Action buttons
+        HBox actionButtons = createFormActionButtons(true);
 
-        // Editing stock
-        Label laStock = new Label("Stock"+" ".repeat(3));
-        laStock.setStyle(UIStyle.labelStyle);
+        form.getChildren().addAll(title, idPriceRow, stockBox, imageSection, descBox, actionButtons);
+        return form;
+    }
 
-        // TextField current stock
+    private VBox createStockManagementSection() {
+        VBox stockSection = new VBox(SPACE.SM);
+
+        Label stockLabel = new Label("Stock Management");
+        stockLabel.setStyle(COMPS.getLabelStyle());
+
+        HBox stockControls = new HBox(SPACE.SM);
+        stockControls.setAlignment(Pos.CENTER_LEFT);
+
+        Label currentLabel = new Label("Current:");
+        currentLabel.setStyle(COMPS.getBodyText());
+
         tfStockEdit = new TextField();
         tfStockEdit.setEditable(false);
-        tfStockEdit.setStyle("-fx-font-size: 14px; -fx-pref-width: 70px;");
+        tfStockEdit.setPrefWidth(80);
+        tfStockEdit.setStyle(COMPS.getTextFieldReadOnly());
 
-        // TextField Change By
+        Label changeLabel = new Label("Change by:");
+        changeLabel.setStyle(COMPS.getBodyText());
+
         tfChangeByEdit = new TextField();
-        tfChangeByEdit.setPromptText("change by");
-        tfChangeByEdit.setStyle("-fx-font-size: 14px; -fx-pref-width: 50px;");
+        tfChangeByEdit.setPromptText("0");
+        tfChangeByEdit.setPrefWidth(70);
+        tfChangeByEdit.setStyle(COMPS.getTextField());
 
-        // Add and Subtract Buttons for changing stock
         btnAdd = new Button("➕");
-        btnAdd.setStyle(UIStyle.greenFillBtnStyle);
-        btnAdd.setPrefWidth(35);
+        btnAdd.setStyle(COMPS.getIconButton(COLORS.SUCCESS));
         btnAdd.setOnAction(this::buttonClick);
+        setupButtonHover(btnAdd, COLORS.SUCCESS, COLORS.SUCCESS_DARK);
 
         btnSub = new Button("➖");
-        btnSub.setStyle(UIStyle.redFillBtnStyle);
-        btnSub.setPrefWidth(35);
+        btnSub.setStyle(COMPS.getIconButton(COLORS.ERROR));
         btnSub.setOnAction(this::buttonClick);
+        setupButtonHover(btnSub, COLORS.ERROR, COLORS.ERROR_DARK);
 
-        //Hbox for all things related to edit stock
-        HBox hbStock = new HBox(10, laStock, tfStockEdit,tfChangeByEdit, btnAdd,btnSub);
-        hbStock.setAlignment(Pos.CENTER_LEFT);
+        stockControls.getChildren().addAll(
+                currentLabel, tfStockEdit, changeLabel, tfChangeByEdit, btnAdd, btnSub
+        );
 
-        // VBox for Description label and TextArea
-        Label laDes = new Label("Description:");
-        laDes.setStyle(UIStyle.labelStyle);
-        taDescriptionEdit = new TextArea();
-        taDescriptionEdit.setPrefSize(COLUMN_WIDTH-20, 20);
-        taDescriptionEdit.setWrapText(true);
-        taDescriptionEdit.setStyle(UIStyle.textFiledStyle);
-        VBox vbDescription = new VBox(laDes, taDescriptionEdit);
-        vbDescription.setAlignment(Pos.CENTER_LEFT);
-
-        // OK & Clear Buttons
-        btnCancelEdit = new Button("Cancel");
-        btnCancelEdit.setStyle(UIStyle.grayFillBtnStyle);
-        btnCancelEdit.setPrefWidth(100);
-        btnCancelEdit.setOnAction(this::buttonClick);
-
-        btnSubmitEdit = new Button("Submit");
-        btnSubmitEdit.setStyle(UIStyle.blueFillBtnStyle);
-        btnSubmitEdit.setPrefWidth(100);
-        btnSubmitEdit.setOnAction(this::buttonClick);
-
-        // HBox for OK & Cancel Buttons
-        HBox hbOkCancelBtns = new HBox(15, btnCancelEdit, btnSubmitEdit);
-        hbOkCancelBtns.setAlignment(Pos.CENTER);
-        //hbOkCancelBtns.setPadding(new Insets(5));
-
-        // Main Layout
-        VBox vbEditStockChild = new VBox(10, hbIdPriceImage, hbStock, vbDescription, hbOkCancelBtns);
-        vbEditStockChild.setStyle(UIStyle.manageStockChildStyle);
-        return vbEditStockChild;
+        stockSection.getChildren().addAll(stockLabel, stockControls);
+        return stockSection;
     }
 
+    private VBox createImageSection(boolean isEdit) {
+        VBox imageSection = new VBox(SPACE.SM);
 
-    private VBox createNewProductChild() {
-        //HBox for Id Label and TextField
-        Label laId = new Label("ID"+ " ".repeat(9));
-        laId.setStyle(UIStyle.labelStyle);
-        tfIdNewPro = new TextField();
-        tfIdNewPro.setStyle("-fx-font-size: 14px; -fx-pref-width: 100px;");
-        HBox hbId = new HBox(10, laId, tfIdNewPro);
-        hbId.setAlignment(Pos.CENTER_LEFT);
+        Label imageLabel = new Label("Product Image");
+        imageLabel.setStyle(COMPS.getLabelStyle());
 
-        // HBox for Price Label and TextField
-        Label laPrice = new Label("Price_£ ");
-        laPrice.setStyle(UIStyle.labelStyle);
-        tfPriceNewPro = new TextField();
-        tfPriceNewPro.setStyle("-fx-font-size: 14px; -fx-pref-width: 100px;");
-        HBox hbPrice = new HBox(10, laPrice, tfPriceNewPro);
-        hbPrice.setAlignment(Pos.CENTER_LEFT);
+        ImageView imageView;
+        if (isEdit) {
+            ivProEdit = new ImageView("WarehouseImageHolder.jpg");
+            ivProEdit.setFitWidth(120);
+            ivProEdit.setFitHeight(120);
+            ivProEdit.setPreserveRatio(true);
+            ivProEdit.setOnMouseClicked(this::imageChooser);
+            imageView = ivProEdit;
+        } else {
+            ivProNewPro = new ImageView("WarehouseImageHolder.jpg");
+            ivProNewPro.setFitWidth(120);
+            ivProNewPro.setFitHeight(120);
+            ivProNewPro.setPreserveRatio(true);
+            ivProNewPro.setOnMouseClicked(this::imageChooser);
+            imageView = ivProNewPro;
+        }
 
-        //  HBox for stock label and textFiled
-        Label laStock = new Label("Stock" +" ".repeat(4));
-        laStock.setStyle(UIStyle.labelStyle);
-        tfStockNewPro = new TextField();
-        tfStockNewPro.setStyle("-fx-font-size: 14px; -fx-pref-width: 100px;");
-        HBox hbStock = new HBox(10, laStock, tfStockNewPro);
-        hbStock.setAlignment(Pos.CENTER_LEFT);
+        // Image container
+        HBox imageContainer = new HBox(imageView);
+        imageContainer.setAlignment(Pos.CENTER);
+        imageContainer.setStyle(COMPS.getImageViewContainer());
+        imageContainer.setCursor(javafx.scene.Cursor.HAND);
 
-        //VBox for id, price,stock
-        VBox vbIdPriceStock = new VBox(10, hbId, hbPrice,hbStock);
+        Label hint = new Label("Click to change image");
+        hint.setStyle(String.format(
+                "-fx-font-size: %fpx; " +
+                        "-fx-text-fill: %s; " +
+                        "-fx-font-style: italic;",
+                TYPO.BODY_SMALL, COLORS.TEXT_TERTIARY
+        ));
 
-        // VBox for Product Image and name keyword
-        ivProNewPro = new ImageView("WarehouseImageHolder.jpg");
-        ivProNewPro.setFitWidth(100);
-        ivProNewPro.setFitHeight(70);
-        ivProEdit.setPreserveRatio(true); //Image keeps its original shape and fits inside 100×70
-        ivProEdit.setSmooth(true);//make it smooth and nice-looking
+        imageSection.getChildren().addAll(imageLabel, imageContainer, hint);
+        return imageSection;
+    }
 
-        // Image Click Event (Open File Chooser)
-        ivProNewPro.setOnMouseClicked(this::imageChooser);
-        //Hbox for id,price,stock,image
-        HBox hbIdPriceStockImage = new HBox(20, vbIdPriceStock, ivProNewPro);
-        hbIdPriceStockImage.setAlignment(Pos.CENTER_LEFT);
+    private HBox createFormActionButtons(boolean isEdit) {
+        HBox buttonRow = new HBox(SPACE.MD);
+        buttonRow.setAlignment(Pos.CENTER);
 
-        // VBox for Description label and TextArea
-        Label laDes = new Label("Description:");
-        laDes.setStyle(UIStyle.labelStyle);
+        Button btnCancel = new Button("Cancel");
+        btnCancel.setPrefWidth(120);
+        btnCancel.setStyle(COMPS.getWarningButton());
+        btnCancel.setOnAction(this::buttonClick);
+        setupButtonHover(btnCancel, COLORS.WARNING, WarehouseUIStyles.darkenColor(COLORS.WARNING, 0.15));
+
+        Button btnSubmit = new Button("💾 Submit");
+        btnSubmit.setPrefWidth(120);
+        btnSubmit.setStyle(COMPS.getInfoButton());
+        btnSubmit.setOnAction(this::buttonClick);
+        setupButtonHover(btnSubmit, COLORS.INFO, WarehouseUIStyles.darkenColor(COLORS.INFO, 0.15));
+
+        if (isEdit) {
+            btnCancelEdit = btnCancel;
+            btnSubmitEdit = btnSubmit;
+        }
+
+        buttonRow.getChildren().addAll(btnCancel, btnSubmit);
+        return buttonRow;
+    }
+
+    private VBox createModernNewProductForm() {
+        VBox form = new VBox(SPACE.LG);
+        form.setStyle(COMPS.getNewFormStyle());
+
+        // Form title
+        Label title = new Label("➕ Add New Product");
+        title.setStyle(COMPS.getHeading3());
+
+        // ID, Price, Stock
+        VBox idBox = createFormField("Product ID*", tfIdNewPro = new TextField(), false);
+        tfIdNewPro.setPromptText("4 digits (e.g., 1234)");
+
+        VBox priceBox = createFormField("Price (£)*", tfPriceNewPro = new TextField(), false);
+        tfPriceNewPro.setPromptText("0.00");
+
+        VBox stockBox = createFormField("Initial Stock*", tfStockNewPro = new TextField(), false);
+        tfStockNewPro.setPromptText("0");
+
+        // Image section
+        VBox imageSection = createImageSection(false);
+
+        // Description
+        Label desLabel = new Label("Description*");
+        desLabel.setStyle(COMPS.getLabelStyle());
         taDescriptionNewPro = new TextArea();
-        taDescriptionNewPro.setPrefSize(COLUMN_WIDTH-20, 20);
+        taDescriptionNewPro.setPrefHeight(80);
         taDescriptionNewPro.setWrapText(true);
-        taDescriptionNewPro.setStyle(UIStyle.textFiledStyle);
-        VBox vbDescription = new VBox(laDes, taDescriptionNewPro);
-        vbDescription.setAlignment(Pos.CENTER_LEFT);
+        taDescriptionNewPro.setStyle(COMPS.getTextArea());
+        VBox descBox = new VBox(SPACE.XS, desLabel, taDescriptionNewPro);
 
-        // OK & Cancel Buttons
-        Button btnClear = new Button("Cancel");
-        btnClear.setStyle(UIStyle.grayFillBtnStyle);
-        btnClear.setPrefWidth(100);
-        btnClear.setOnAction(this::buttonClick);
+        // Action buttons
+        HBox actionButtons = createFormActionButtons(false);
 
-        Button btnAddNewPro = new Button("Submit");
-        btnAddNewPro.setStyle(UIStyle.blueFillBtnStyle);
-        btnAddNewPro.setPrefWidth(100);
-        btnAddNewPro.setOnAction(this::buttonClick);
-        // HBox for OK & clear Buttons
-        HBox hbOkCancelBtns = new HBox(15, btnClear, btnAddNewPro);
-        hbOkCancelBtns.setAlignment(Pos.CENTER);
-        //hbOkCancelBtns.setPadding(new Insets(5));
-
-        // Main Layout
-        VBox vbAddNewProductToStockChild = new VBox(10, hbIdPriceStockImage, vbDescription, hbOkCancelBtns);
-        vbAddNewProductToStockChild.setStyle(UIStyle.manageStockChildStyle1);
-        return vbAddNewProductToStockChild;
+        form.getChildren().addAll(
+                title, idBox, priceBox, stockBox, imageSection, descBox, actionButtons
+        );
+        return form;
     }
 
-    //disable editable controls before user select a product and click the button edit
+    private VBox createFormField(String label, TextField textField, boolean readOnly) {
+        VBox fieldBox = new VBox(SPACE.XS);
+
+        Label fieldLabel = new Label(label);
+        fieldLabel.setStyle(COMPS.getLabelStyle());
+
+        textField.setStyle(readOnly ? COMPS.getTextFieldReadOnly() : COMPS.getTextField());
+        textField.setEditable(!readOnly);
+        if (!readOnly) {
+            setupTextFieldHover(textField);
+        }
+
+        fieldBox.getChildren().addAll(fieldLabel, textField);
+        return fieldBox;
+    }
+
+    // ==================== UI HELPER METHODS ====================
+    private void setupTextFieldHover(TextField textField) {
+        String originalStyle = textField.getStyle();
+        textField.focusedProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal) {
+                textField.setStyle(originalStyle + String.format(
+                        " -fx-border-color: %s; " +
+                                "-fx-effect: dropshadow(gaussian, rgba(124, 58, 237, 0.3), 6, 0, 0, 0);",
+                        COLORS.PRIMARY
+                ));
+            } else {
+                textField.setStyle(originalStyle);
+            }
+        });
+    }
+
+    private void setupButtonHover(Button button, String baseColor, String hoverColor) {
+        String originalStyle = button.getStyle();
+        button.setOnMouseEntered(e -> {
+            button.setStyle(originalStyle.replace(
+                    "-fx-background-color: " + baseColor,
+                    "-fx-background-color: " + hoverColor
+            ) + " -fx-scale-x: 1.05; -fx-scale-y: 1.05;");
+        });
+        button.setOnMouseExited(e -> {
+            button.setStyle(originalStyle);
+        });
+    }
+
+    // ==================== EVENT HANDLERS ====================
+    private void performSearch() {
+        try {
+            controller.process("🔍");
+        } catch (SQLException | IOException e) {
+            showError("Search Error", e.getMessage());
+        }
+    }
+
+    private void buttonClick(ActionEvent event) {
+        Button btn = (Button) event.getSource();
+        String action = btn.getText();
+
+        if (action.contains("Edit") && obrLvProducts.getSelectionModel().getSelectedItem() != null) {
+            disableEditProductChild(false);
+            cbProductFormMode.setValue("✏️ Edit Existing Product");
+        }
+
+        try {
+            controller.process(action);
+        } catch (Exception e) {
+            showError("Operation Failed", e.getMessage());
+        }
+    }
+
+    private void imageChooser(MouseEvent event) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select Product Image");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg")
+        );
+        File file = fileChooser.showOpenDialog(viewWindow);
+
+        if (file != null) {
+            if (theProFormMode.equals("EDIT")) {
+                isUserSelectedImageEdit = true;
+                ivProEdit.setImage(new Image(file.toURI().toString()));
+                userSelectedImageUriEdit = file.getAbsolutePath();
+            } else if (theProFormMode.equals("NEW")) {
+                ivProNewPro.setImage(new Image(file.toURI().toString()));
+                imageUriNewPro = file.getAbsolutePath();
+            }
+        }
+    }
+
+    // ==================== UPDATE METHODS ====================
+    void updateObservableProductList(ArrayList<Product> productList) {
+        int proCounter = productList.size();
+        laSearchSummary.setText(String.format("📦 %d product(s) found", proCounter));
+        obeProductList.clear();
+        obeProductList.addAll(productList);
+        obrLvProducts.refresh();
+    }
+
+    void updateBtnAddSub(String stock) {
+        tfStockEdit.setText(stock);
+        tfChangeByEdit.clear();
+    }
+
+    void updateEditProductChild(String id, String price, String stock, String des, String imageUrl) {
+        tfIdEdit.setText(id);
+        tfPriceEdit.setText(price);
+        tfStockEdit.setText(stock);
+        taDescriptionEdit.setText(des);
+
+        try {
+            ivProEdit.setImage(new Image(imageUrl));
+        } catch (Exception e) {
+            ivProEdit.setImage(new Image("WarehouseImageHolder.jpg"));
+        }
+    }
+
+    void resetEditChild() {
+        tfIdEdit.setText("");
+        tfPriceEdit.setText("");
+        tfStockEdit.setText("");
+        tfChangeByEdit.setText("");
+        taDescriptionEdit.setText("");
+        ivProEdit.setImage(new Image("WarehouseImageHolder.jpg"));
+        isUserSelectedImageEdit = false;
+        userSelectedImageUriEdit = null;
+        disableEditProductChild(true);
+    }
+
+    void resetNewProChild() {
+        tfIdNewPro.setText("");
+        tfPriceNewPro.setText("");
+        tfStockNewPro.setText("");
+        taDescriptionNewPro.setText("");
+        ivProNewPro.setImage(new Image("WarehouseImageHolder.jpg"));
+        imageUriNewPro = null;
+    }
+
     private void disableEditProductChild(boolean disable) {
         tfPriceEdit.setDisable(disable);
         tfChangeByEdit.setDisable(disable);
@@ -467,134 +704,33 @@ public class WarehouseView  {
         btnSubmitEdit.setDisable(disable);
     }
 
-
-    private void buttonClick(ActionEvent event)  {
-        Button btn= (Button)event.getSource();
-        String action = btn.getText();
-
-        //only when user click btnEidt and a product was selected, enable editable field of editChild
-        if(action.equals("Edit") && obrLvProducts.getSelectionModel().getSelectedItem()!=null) {
-            disableEditProductChild(false); //a product was selected, enable editChild
-            cbProductFormMode.setValue("Edit Existing Product in Stock"); //show EditChild
-        }
-
-        try{
-            controller.process(action);
-        }
-        catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-    }
-
-    private void imageChooser(MouseEvent event) {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg"));
-        File file = fileChooser.showOpenDialog(null); //return absolute fullpath of the user selected file
-                                                              //eg C:/Users/John/Pictures/sample.jpg
-        if (file != null) {
-
-            if (theProFormMode.equals("EDIT")) {
-                isUserSelectedImageEdit = true;
-                // Set image preview
-                ivProEdit.setImage(new Image(file.toURI().toString()));
-                // Get the selected image path, and name
-                userSelectedImageUriEdit = file.getAbsolutePath(); //eg C:\Users\shan\Desktop\mark.jpg
-                //file.getParent();  // Get the folder
-                System.out.println("Selected Image Path: " + userSelectedImageUriEdit);
-                System.out.println("Selected Image name: " + file.getName());
-            }
-            if (theProFormMode.equals("NEW")) {
-                // Set image preview
-                ivProNewPro.setImage(new Image(file.toURI().toString()));
-                imageUriNewPro = file.getAbsolutePath();
-                System.out.println("Selected Image Path: " + imageUriNewPro);
-                System.out.println("Selected Image name: " + file.getName());
-            }
+    // ==================== UTILITY METHODS ====================
+    private void showStockDashboard() {
+        if (stockDashboard != null) {
+            stockDashboard.show();
         }
     }
 
-    //update the product listVew of serachPage
-    void updateObservableProductList( ArrayList<Product> productList) {
-        int proCounter = productList.size();
-        System.out.println(proCounter);
-        laSearchSummary.setText(proCounter + " products found");
-        laSearchSummary.setVisible(true);
-        obeProductList.clear();
-        obeProductList.addAll(productList);
-    }
-
-    void updateBtnAddSub(String stock){
-        tfStockEdit.setText(stock);
-        tfChangeByEdit.clear();
-    }
-
-    //update interface of editing existing product in stock
-    void updateEditProductChild(String id, String price, String stock, String des, String imageUrl) {
-        tfIdEdit.setText(id);
-        tfPriceEdit.setText(price);
-        tfStockEdit.setText(stock);
-        taDescriptionEdit.setText(des);
-
-        System.out.println(imageUrl);
-        try{
-            ivProEdit.setImage(new Image(imageUrl));  // Attempt to load the product image
-        } catch (Exception e) {
-            // If loading fails, use a default image directly from the resources folder
-            ivProEdit.setImage(new Image("imageHolder.jpg"));
+    public void refreshDashboard() {
+        if (stockDashboard != null) {
+            stockDashboard.refresh();
         }
     }
 
-    void resetEditChild() {
-        tfIdEdit.setText("");
-        tfPriceEdit.setText("");
-        tfStockEdit.setText("");
-        tfChangeByEdit.setText("");
-        taDescriptionEdit.setText("");
-        ivProEdit.setImage(new Image("WarehouseImageHolder.jpg"));
-        disableEditProductChild(true);
+    private void showError(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+
+        // Style the alert
+        DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.setStyle(String.format(
+                "-fx-background-color: %s; " +
+                        "-fx-font-family: %s;",
+                COLORS.SURFACE, TYPO.FONT_PRIMARY
+        ));
+
+        alert.showAndWait();
     }
-
-    void resetNewProChild() {
-       tfIdNewPro.setText("");
-       tfPriceNewPro.setText("");
-       tfStockNewPro.setText("");
-       taDescriptionNewPro.setText("");
-       ivProNewPro.setImage(new Image("WarehouseImageHolder.jpg"));
-       imageUriNewPro = null; //clear the selcted image
-       System.out.println("resetNewProChild in view called");
-    }
-
-    WindowBounds getWindowBounds() {
-        return new WindowBounds(viewWindow.getX(),
-                                viewWindow.getY(),
-                                viewWindow.getWidth(),
-                                viewWindow.getHeight());
-    }
-
-    //   //another way to reset the editChild and NewProChild
-//   // remove the current one then recreate them and add them back
-//    //not use it in this version
-//    public void resetManageStockChild() {
-//        vbManagePage.getChildren().remove(1); // Remove the second child (editChild or addNewProChild)
-//
-//        //Decide which child to recreate and add back
-//        if (theManageType.equals("edit")) {
-//            vbEditProChild = editStockChild(); // Recreate the child
-//            vbManagePage.getChildren().add(vbEditProChild);
-//            proListView.requestFocus();
-//            imageSelectedEdit = false;//reset to false if the user canged image in previous editing
-//        }
-//        if (theManageType.equals("addNew")) {
-//            vbAddProChild = addNewProductToStockChild();  // Recreate the child
-//            vbManagePage.getChildren().add(vbAddProChild);
-//            tfIdNewPro.requestFocus();
-//            imageSelectedNewPro = false;
-//        }
-//    }
-
-//
-
 }
-
-

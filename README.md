@@ -12,6 +12,9 @@ After opening the project in IntelliJ:
 ## 🚀 Running the System
 
 - Run `Launcher` each time you want to start the system.
+- For the customer Login:  user: customer, password: customer123
+- For the staff: user: staff, password: staff123
+- For the admin: user: admin, password: admin123
 
 ## 📌 Summary
 

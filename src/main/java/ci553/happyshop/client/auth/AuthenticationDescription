@@ -1,0 +1,186 @@
+HAPPYSHOP project - Client/auth category
+
+purpose:
+manages client - side authentication UI components, user login, and registration interfaces following MVC pattern
+
+LoginController:
+    Purpose:
+    Controls the login process by handling user interactions, coordinating between
+    the LoginView and LoginModel, and managing authentication logic on the client side.
+
+    Responsibilities:
+    - Receives user input from LoginView (username and password)
+    - Validates input before sending to server
+    - Communicates with LoginModel to process authentication
+    - Handles login success and failure responses
+    - Navigates user to appropriate screen after successful login
+    - Displays error messages for failed login attempts
+    - Manages "Remember Me" functionality if implemented
+    - Coordinates with server-side authentication system
+
+    Key Methods:
+    - handleLogin(username, password): Processes login attempt
+    - validateInput(username, password): Checks if fields are not empty
+    - onLoginSuccess(user): Handles successful authentication
+    - onLoginFailure(errorMessage): Handles failed authentication
+    - clearLoginForm(): Resets input fields
+    - showError(message): Displays error to user via view
+    - navigateToMainScreen(): Redirects to main application after login
+
+    Usage:
+    Created when LoginLauncher starts the login screen. Receives events from
+    LoginView when user clicks login button. Calls LoginModel to authenticate
+    credentials. Updates LoginView based on authentication results. Bridges the
+    gap between user interface and business logic.
+
+LoginLauncher:
+    Purpose:
+    Entry point for the authentication system that initializes and launches the
+    login interface when the application starts.
+
+    Responsibilities:
+    - Initializes the login window/frame
+    - Creates instances of LoginController, LoginModel, and LoginView
+    - Wires up MVC components (connects view to controller to model)
+    - Sets up the login screen properties (size, position, visibility)
+    - May check if user is already authenticated (session exists)
+    - Launches registration view if user clicks "Sign Up"
+    - Handles application startup sequence
+
+    Key Methods:
+    - main(args): Application entry point (if standalone)
+    - initialize(): Sets up all login components
+    - createLoginView(): Instantiates and configures LoginView
+    - createLoginController(): Instantiates LoginController
+    - createLoginModel(): Instantiates LoginModel
+    - launch(): Makes login window visible
+    - shutdown(): Closes login window and cleans up resources
+
+    Usage:
+    First class executed when application starts or when user needs to authenticate.
+    Creates the MVC architecture for login. May be called from main application
+    when user logs out. Serves as the bootstrap for the authentication UI.
+
+LoginModel:
+    Purpose:
+    Manages the business logic and data for the login process, communicating with
+    the server to authenticate users and maintaining login state.
+
+    Responsibilities:
+    - Sends authentication requests to server
+    - Receives and processes authentication responses
+    - Stores current user session information
+    - Manages authentication state (logged in/out)
+    - Handles network communication with authentication API
+    - Caches user credentials if "Remember Me" is enabled
+    - Validates authentication tokens
+    - Manages session timeouts
+
+    Key Methods:
+    - authenticate(username, password): Sends login request to server
+    - isAuthenticated(): Checks if user is currently logged in
+    - getCurrentUser(): Returns currently logged in user object
+    - logout(): Clears session and user data
+    - saveSession(user): Stores user session locally
+    - clearSession(): Removes stored session data
+    - validateToken(token): Verifies authentication token is valid
+    - handleAuthenticationResponse(response): Processes server response
+
+    Usage:
+    Called by LoginController to perform actual authentication. Communicates
+    with server-side authentication system. Notifies controller of success or
+    failure. Maintains user session throughout application lifecycle. Used by
+    other parts of application to check authentication status.
+
+LoginView:
+    Purpose:
+    Provides the graphical user interface for the login screen, displaying input
+    fields and buttons for user authentication.
+
+    UI Components:
+    - Username text field
+    - Password text field (with masked input)
+    - Login button
+    - "Forgot Password?" link (optional)
+    - "Sign Up" / "Create Account" button
+    - Error message label
+    - Loading indicator (during authentication)
+    - "Remember Me" checkbox (optional)
+    - Application logo/branding
+
+    Responsibilities:
+    - Displays login form to user
+    - Captures user input (username and password)
+    - Sends user actions to LoginController
+    - Displays error messages from controller
+    - Shows loading state during authentication
+    - Provides visual feedback for user interactions
+    - Implements UI styling and layout
+    - Handles "Enter" key press to submit form
+
+    Key Methods:
+    - displayLoginForm(): Renders the login interface
+    - getUsername(): Retrieves entered username
+    - getPassword(): Retrieves entered password
+    - showError(message): Displays error message to user
+    - clearError(): Removes error message
+    - showLoading(): Shows loading/processing indicator
+    - hideLoading(): Hides loading indicator
+    - clearFields(): Clears username and password fields
+    - setLoginButtonEnabled(enabled): Enables/disables login button
+
+    Usage:
+    Created by LoginLauncher and controlled by LoginController. Displayed when
+    user needs to authenticate. Sends events to LoginController when user clicks
+    login button. Updated by controller to show errors or loading states. User's
+    primary interaction point for authentication.
+
+RegisterView:
+    Purpose:
+    Provides the graphical user interface for new user registration, allowing
+    users to create new accounts in the system.
+
+    UI Components:
+    - Username text field
+    - Email text field
+    - Password text field (with masked input)
+    - Confirm Password text field
+    - First Name text field
+    - Last Name text field
+    - "Create Account" / "Register" button
+    - "Back to Login" button/link
+    - Terms and Conditions checkbox
+    - Error/validation message labels
+    - Success message display
+
+    Responsibilities:
+    - Displays registration form to user
+    - Captures new user information
+    - Performs client-side validation (password match, email format, etc.)
+    - Sends registration data to controller
+    - Displays validation errors inline
+    - Shows success message after registration
+    - Provides password strength indicator
+    - Implements UI styling and layout
+    - Handles form submission
+
+    Key Methods:
+    - displayRegistrationForm(): Renders the registration interface
+    - getUsername(): Retrieves entered username
+    - getEmail(): Retrieves entered email
+    - getPassword(): Retrieves entered password
+    - getConfirmPassword(): Retrieves password confirmation
+    - showError(field, message): Displays field-specific error
+    - clearErrors(): Removes all error messages
+    - validateEmail(email): Checks email format
+    - validatePasswordMatch(): Checks if passwords match
+    - showSuccess(message): Displays registration success
+    - clearFields(): Clears all input fields
+    - navigateToLogin(): Returns to login screen
+
+    Usage:
+    Created when user clicks "Sign Up" from LoginView. May have its own
+    controller (RegisterController) or share LoginController. Validates input
+    before sending to server. Shows success message and redirects to LoginView
+    after successful registration. Provides user-friendly error messages for
+    validation failures.
