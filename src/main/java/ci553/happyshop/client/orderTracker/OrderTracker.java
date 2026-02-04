@@ -11,6 +11,8 @@ import javafx.scene.control.TextArea;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -20,9 +22,10 @@ import java.util.TreeMap;
  * The ordersMap data is received from the OrderHub.
  */
 
-public class OrderTracker {
+public class OrderTracker implements PropertyChangeListener {
     private final int WIDTH = UIStyle.trackerWinWidth;
     private final int HEIGHT = UIStyle.trackerWinHeight;
+
 
     // TreeMap (orderID,state) holding order IDs and their corresponding states.
     private static final TreeMap<Integer, OrderState> ordersMap = new TreeMap<>();
@@ -30,6 +33,7 @@ public class OrderTracker {
 
      //Constructor initializes the UI, a title Label, and a TextArea for displaying the order details.
     public OrderTracker() {
+        // initialise this tracker instance as an observer
         Label laTitle = new Label("Order_ID,  State");
         laTitle.setStyle(UIStyle.labelTitleStyle);
 
@@ -51,14 +55,16 @@ public class OrderTracker {
         window.show();
     }
 
-    /**
-     * Registers this OrderTracker instance with the OrderHub.
-     * This allows the OrderTracker to receive updates on order state changes.
-     */
+    public void propertyChange(PropertyChangeEvent evt) {
+        TreeMap<Integer,OrderState> updatedMap = (TreeMap<Integer,OrderState>) evt.getNewValue();
+        setOrderMap(updatedMap);
+    }
+
     public void registerWithOrderHub(){
         OrderHub orderHub = OrderHub.getOrderHub();
-        orderHub.registerOrderTracker(this);
+        orderHub.addObserver(this); // register tracker instance with the order hub
     }
+
 
     /**
      * Sets the order map with new data and refreshes the display.

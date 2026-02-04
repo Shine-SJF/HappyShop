@@ -2,11 +2,12 @@ package ci553.happyshop.orderManagement;
 
 import ci553.happyshop.catalogue.Order;
 import ci553.happyshop.catalogue.Product;
-import ci553.happyshop.client.orderTracker.OrderTracker;
 import ci553.happyshop.client.picker.PickerModel;
 import ci553.happyshop.storageAccess.OrderFileManager;
 import ci553.happyshop.utility.StorageLocation;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -51,6 +52,8 @@ public class OrderHub  {
     private TreeMap<Integer,OrderState> OrderedOrderMap = new TreeMap<>();
     private TreeMap<Integer,OrderState> progressingOrderMap = new TreeMap<>();
 
+    private PropertyChangeSupport pcs;
+
     /**
      * Two Lists to hold all registered OrderTracker and PickerModel observers.
      * These observers are notified whenever the orderMap is updated,
@@ -59,13 +62,15 @@ public class OrderHub  {
      *   but collected orders are shown for a limited time (10 seconds).
      * - PickerModels will be notified only of orders in the "ordered" or "progressing" states, filtering out collected orders.
      */
-    private ArrayList<OrderTracker> orderTrackerList = new ArrayList<>();
     private ArrayList<PickerModel> pickerModelList = new ArrayList<>();
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     //Singleton pattern
-    private OrderHub() {}
+    private OrderHub() {
+        pcs  = new PropertyChangeSupport(this);
+    }
+
     public static OrderHub getOrderHub() {
         if (orderHub == null)
             orderHub = new OrderHub();
@@ -88,22 +93,23 @@ public class OrderHub  {
         orderMap.put(orderId, theOrder.getState()); //add the order to orderMap,state is Ordered initially
         notifyOrderTrackers(); //notify OrderTrackers
         notifyPickerModels();//notify pickers
-        
+
         return theOrder;
     }
 
-    //Registers an OrderTracker to receive updates about changes.
-    public void registerOrderTracker(OrderTracker orderTracker){
-        orderTrackerList.add(orderTracker);
-    }
-     //Notifies all registered observer_OrderTrackers to update and display the latest orderMap.
-    public void notifyOrderTrackers(){
-        for(OrderTracker orderTracker : orderTrackerList){
-            orderTracker.setOrderMap(orderMap);
-        }
+    public void addObserver(PropertyChangeListener observer) {
+        pcs.addPropertyChangeListener(observer);
     }
 
-    //Registers a PickerModel to receive updates about changes.
+    public void removeObserver(PropertyChangeListener observer) {
+        pcs.removePropertyChangeListener(observer);
+    }
+
+    public void notifyOrderTrackers() {
+        pcs.firePropertyChange("orderMap", null, orderMap);
+    }
+
+
     public void registerPickerModel(PickerModel pickerModel){
         pickerModelList.add(pickerModel);
     }
@@ -119,6 +125,7 @@ public class OrderHub  {
             pickerModel.setOrderMap(orderMapForPicker);
         }
     }
+
 
     // Filters orderMap that match the specified state, a helper class used by notifyPickerModel()
     private TreeMap<Integer, OrderState> filterOrdersByState(OrderState state) {
@@ -157,7 +164,6 @@ public class OrderHub  {
 
     /**
      * Removes collected orders from the system after they have been collected for 10 seconds.
-     *
      * This ensures that collected orders are cleared from the active order pool and are no longer displayed
      * by the OrderTracker after the brief period. This keeps the system focused on orders in the
      * "ordered" and "progressing" states.
