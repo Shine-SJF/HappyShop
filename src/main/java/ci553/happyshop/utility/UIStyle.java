@@ -73,8 +73,13 @@ public record UIStyle() {
     public static final String rootStyleWarehouse = "-fx-padding: 8px; " +
             "-fx-background-color: lightpink";
 
-    public static final String rootStyleYellow = "-fx-padding: 8px; " +
-            "-fx-background-color: lightyellow";
+    // A list of actions to run when the theme changes
+    private static final List<Runnable> themeListeners = new ArrayList<>();
+    public static void addThemeListener(Runnable r) {
+        if (!themeListeners.contains(r)) {
+            themeListeners.add(r);
+        }
+    }
 
     public static final String textFiledStyle = "-fx-font-size: 16";
 
