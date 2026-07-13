@@ -46,10 +46,7 @@ public record UIStyle() {
     public static final int HistoryWinHeight = 300;
 
     public static final int EmergencyExitWinWidth = 200;
-    public static final int EmergencyExitWinHeight = 300;
-
-    public static final String labelTitleStyle ="-fx-font-weight: bold; " +
-            "-fx-font-size: 16px; -fx-text-fill: purple;";
+    public static final int EmergencyExitWinHeight = 250;
 
     public static String rootStyle;
     public static String rootStyleHistory;
