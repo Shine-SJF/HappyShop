@@ -83,22 +83,11 @@ public record UIStyle() {
     public static String lineStyle;
     public static String detailAreaStyle;
 
-    public static final String comboBoxStyle ="-fx-font-weight: bold; " +
-            "-fx-font-size: 14px;";
-
-    public static final String buttonStyle= "-fx-font-size: 15";
-
-    public static final String rootStyle = "-fx-padding: 8px; " +
-            "-fx-background-color: lightgreen";
-
-    public static final String rootStyleBlue = "-fx-padding: 8px; " +
-            "-fx-background-color: lightblue";
-
-    public static final String rootStyleGray = "-fx-padding: 8px; " +
-            "-fx-background-color: lightgray";
-
-    public static final String rootStyleWarehouse = "-fx-padding: 8px; " +
-            "-fx-background-color: lightpink";
+    // Corner Radius Variable
+    private static final String ROUND_CORNER = " -fx-background-radius: 25; -fx-border-radius: 25; ";
+    private static final String BTN_PADDING = " -fx-padding: 8 22 8 22; ";
+    // Font Style Variable
+    private static final String FONT_MAIN = "-fx-font-family: 'Muli Black'; ";
 
     // A list of actions to run when the theme changes
     private static final List<Runnable> themeListeners = new ArrayList<>();
