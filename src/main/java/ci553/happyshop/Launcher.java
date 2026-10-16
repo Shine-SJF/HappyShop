@@ -11,7 +11,6 @@ import javafx.application.Application;
  * @author Shine Shan University of Brighton
  * @version 1.5
  */
-
 public class Launcher  {
     /**
      * The main method to start the full system.
